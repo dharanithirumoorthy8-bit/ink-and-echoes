@@ -8,11 +8,14 @@ from models import User, db
 auth_bp = Blueprint('auth', __name__)
 
 
+def get_admin_credentials():
+    admin_username = (os.environ.get('ADMIN_USERNAME') or 'admin').strip() or 'admin'
+    admin_password = os.environ.get('ADMIN_PASSWORD') or 'admin123'
+    return admin_username, admin_password
+
+
 def get_admin_user():
-    admin_username = (os.environ.get('ADMIN_USERNAME') or '').strip()
-    admin_password = os.environ.get('ADMIN_PASSWORD') or ''
-    if not admin_username or not admin_password:
-        return None
+    admin_username, admin_password = get_admin_credentials()
 
     user = User.query.filter_by(username=admin_username).first()
     if user is None:
@@ -82,14 +85,11 @@ def login():
         username = (request.form.get('username') or '').strip()
         password = request.form.get('password') or ''
 
-        admin_username = (os.environ.get('ADMIN_USERNAME') or '').strip()
-        admin_password = os.environ.get('ADMIN_PASSWORD') or ''
+        admin_username, admin_password = get_admin_credentials()
         if username == admin_username and password == admin_password:
-            admin_user = get_admin_user()
-            if admin_user:
-                login_user(admin_user)
-                flash('Logged in as administrator.')
-                return redirect(url_for('admin.admin_index'))
+            login_user(get_admin_user())
+            flash('Logged in as administrator.')
+            return redirect(url_for('admin.admin_index'))
 
         user = User.query.filter((User.username == username) | (User.email == username)).first()
         if user and user.check_password(password):

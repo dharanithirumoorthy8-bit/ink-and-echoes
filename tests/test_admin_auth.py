@@ -35,6 +35,24 @@ class AdminAuthTests(unittest.TestCase):
         self.assertIsNotNone(admin_user)
         self.assertTrue(admin_user.is_admin)
 
+    def test_default_admin_credentials_work_when_env_is_unset(self):
+        db.session.query(User).delete()
+        db.session.commit()
+
+        for key in ['ADMIN_USERNAME', 'ADMIN_PASSWORD']:
+            os.environ.pop(key, None)
+
+        client = self.app.test_client()
+        response = client.post('/login', data={
+            'username': 'admin',
+            'password': 'admin123',
+        }, follow_redirects=False)
+
+        self.assertEqual(response.status_code, 302)
+        admin_user = User.query.filter_by(username='admin').first()
+        self.assertIsNotNone(admin_user)
+        self.assertTrue(admin_user.is_admin)
+
 
 if __name__ == '__main__':
     unittest.main()
