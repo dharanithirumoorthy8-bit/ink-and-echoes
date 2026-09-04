@@ -8,6 +8,8 @@ from models import db
 def create_app():
     app = Flask(__name__)
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret')
+    app.config['ADMIN_USERNAME'] = os.environ.get('ADMIN_USERNAME', 'admin')
+    app.config['ADMIN_PASSWORD'] = os.environ.get('ADMIN_PASSWORD', 'admin123')
     app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get(
         'DATABASE_URL',
         'sqlite:///ink_and_echoes.db'

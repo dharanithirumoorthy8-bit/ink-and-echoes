@@ -16,6 +16,9 @@ def admin_required(f):
         if not current_user.is_authenticated:
             flash('Login required to manage poems.')
             return redirect(url_for('auth.login'))
+        if not getattr(current_user, 'is_admin', False):
+            flash('Admin access required.')
+            return redirect(url_for('index'))
         return f(*args, **kwargs)
 
     return wrapped

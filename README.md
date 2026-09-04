@@ -21,3 +21,12 @@ python app.py
 You can also run the app with `flask run` after setting `FLASK_APP=app`.
 
 Set `OPENAI_API_KEY` to enable AI chat via OpenAI. Otherwise the chat endpoint echoes back messages.
+
+For the admin panel, set separate login credentials before running the app:
+
+```powershell
+$env:ADMIN_USERNAME='admin'
+$env:ADMIN_PASSWORD='change-me-now'
+```
+
+The admin login uses these values instead of the normal user sign-in flow.
