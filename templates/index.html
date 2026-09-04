@@ -1,0 +1,155 @@
+{% extends 'base.html' %}
+{% block content %}
+  <section class="hero-shell">
+    <div class="hero-copy">
+      <p class="eyebrow">Poem first. Login later.</p>
+      <h1>Moonlit Marginalia</h1>
+      <p class="subtitle">A quiet sanctuary for verses, late-night musings, and unsaid emotions. Welcome to my margins.</p>
+
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="/poems">Read poems</a>
+        <a class="btn btn-secondary" href="/login">Login</a>
+        <a class="btn btn-tertiary" href="/signup">Register</a>
+        <a class="btn btn-secondary" href="/suggestions">Suggestion box</a>
+      </div>
+
+      <div class="mini-stats">
+        <div>
+          <strong>{{ total_views }}</strong>
+          <span>views</span>
+        </div>
+        <div>
+          <strong>Fresh</strong>
+          <span>new verses</span>
+        </div>
+        <div>
+          <strong>Calm</strong>
+          <span>slow reading</span>
+        </div>
+        <div>
+          <strong>AI</strong>
+          <span>companion</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="hero-visual">
+      <div class="portrait-card tilt-card">
+        <div class="portrait-frame">
+          <img src="/static/img/IMG-20260711-WA0262.jpg" alt="Profile portrait" onerror="this.onerror=null;this.src='/static/img/profile-portrait.svg';">
+        </div>
+        <div class="portrait-meta">
+          <span>Featured voice</span>
+          <strong>Moonlit thoughts</strong>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  {% if has_new_poem and latest_poem %}
+    <section class="feature-section">
+      <div class="new-poem-banner">
+        <span class="new-pill">New</span>
+        <span>Fresh poem added: {{ latest_poem.title }}</span>
+      </div>
+    </section>
+  {% endif %}
+
+  <section class="feature-section suggestion-panel">
+    <div class="dual-panel-grid">
+      <div class="panel-card suggestion-box-card">
+        <div class="panel-visual suggestion-art" aria-hidden="true"></div>
+        <div class="scene-header">
+          <h2>POEM<br>SUGGESTIONS</h2>
+        </div>
+
+        <div class="story-card-scene mailbox-scene">
+          <div class="mailbox-frame">
+            <div class="mailbox-slot"></div>
+            <div class="mailbox-robot">
+              <div class="robot-head">
+                <span class="robot-eye"></span>
+                <span class="robot-eye"></span>
+              </div>
+              <div class="robot-body"></div>
+              <div class="robot-arm"></div>
+            </div>
+            <div class="mail-scroll">
+              <div class="scroll-paper"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="suggestion-copy">
+          <p>Share your ideas &amp; inspiration.</p>
+          <a class="btn btn-secondary" href="/suggestions">Share a note</a>
+        </div>
+      </div>
+
+      <div class="panel-card companion-panel">
+        <div class="panel-visual companion-art" aria-hidden="true"></div>
+        <div class="scene-header alt-header">
+          <h2>AI<br>Companion</h2>
+        </div>
+
+        <div class="story-card-scene ghost-scene">
+          <div class="ghost-character">
+            <div class="ghost-head"></div>
+            <div class="ghost-orbit orbit-one"></div>
+            <div class="ghost-orbit orbit-two"></div>
+            <div class="ghost-orbit orbit-three"></div>
+          </div>
+          <div class="reading-chair">
+            <div class="chair-seat"></div>
+            <div class="chair-back"></div>
+            <div class="chair-book"></div>
+          </div>
+        </div>
+
+        <div class="suggestion-copy">
+          <p>Warm, thoughtful, and multilingual. Speak to a poetic companion who responds in soft, reflective language.</p>
+          <a class="btn btn-primary" href="/chat">Talk to the companion</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="feature-section">
+    <div class="section-heading">
+      <p class="eyebrow">Featured</p>
+      <h2>Poems to begin with</h2>
+    </div>
+
+    <div class="poem-grid">
+      {% if poems %}
+        {% for p in poems %}
+          <article class="poem-card tilt-card">
+            {% if p.id in recent_poem_ids %}
+              <span class="pill new-pill">New</span>
+            {% else %}
+              <span class="pill">Poem</span>
+            {% endif %}
+            <h3>{{ p.title }}</h3>
+            <p>{{ p.body[:160] }}{% if p.body|length > 160 %}...{% endif %}</p>
+          </article>
+        {% endfor %}
+      {% else %}
+        <article class="poem-card tilt-card">
+          <span class="pill">Poem</span>
+          <h3>Moonlit Silence</h3>
+          <p>The evening remembers your breath in soft silver light.</p>
+        </article>
+        <article class="poem-card tilt-card">
+          <span class="pill">Poem</span>
+          <h3>Lanterns in Rain</h3>
+          <p>Every drop carries a small story home to the heart.</p>
+        </article>
+        <article class="poem-card tilt-card">
+          <span class="pill">Poem</span>
+          <h3>Echoes of Dawn</h3>
+          <p>The sky opens like a page, waiting for a new beginning.</p>
+        </article>
+      {% endif %}
+    </div>
+  </section>
+{% endblock %}

@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block content %}
+  <section class="page-shell">
+    <div class="auth-card wide-card">
+      <div class="card-header center">
+        <p class="eyebrow">Suggestion box</p>
+        <h2>Leave a note in the margins</h2>
+      </div>
+
+      <div class="suggestion-portrait-wrap large-suggestion-portrait">
+        <img class="suggestion-portrait" src="/static/img/IMG-20260711-WA0262.jpg" alt="Suggestion box portrait" onerror="this.onerror=null;this.src='/static/img/profile-portrait.svg';">
+      </div>
+
+      <form method="post" class="stack-form chat-form">
+        <label>
+          <span>Your thought</span>
+          <textarea name="message" rows="6" placeholder="A line, a feeling, a memory, a tiny confession..."></textarea>
+        </label>
+        <button type="submit">Send suggestion</button>
+      </form>
+    </div>
+  </section>
+{% endblock %}

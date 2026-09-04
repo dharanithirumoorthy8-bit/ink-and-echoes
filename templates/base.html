@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Moonlit Marginalia</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+  </head>
+  <body>
+    <div class="page-3d-scene" aria-hidden="true">
+      <div class="orb orb-one"></div>
+      <div class="orb orb-two"></div>
+      <div class="orb orb-three"></div>
+      <div class="floating-panel panel-left"></div>
+      <div class="floating-panel panel-right"></div>
+    </div>
+    <header class="site-header">
+      <div class="brand-wrap">
+        <a class="brand" href="/">Moonlit Marginalia</a>
+      </div>
+      <nav class="nav-center">
+        <a href="/poems">Poems</a>
+        <a href="/chat">Chat</a>
+        {% if current_user.is_authenticated %}
+          <a href="/admin">Admin</a>
+          <a href="/logout">Logout</a>
+        {% else %}
+          <a href="/signup">Register</a>
+          <a href="/login">Login</a>
+        {% endif %}
+      </nav>
+    </header>
+    <main>
+      {% with messages = get_flashed_messages() %}
+        {% if messages %}
+          <ul class="flashes">
+            {% for m in messages %}
+              <li>{{ m }}</li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+      {% endwith %}
+      {% block content %}{% endblock %}
+    </main>
+    <footer class="site-footer">
+      <p>© 2026 Moonlit Marginalia</p>
+    </footer>
+    {% block scripts %}{% endblock %}
+  </body>
+</html>

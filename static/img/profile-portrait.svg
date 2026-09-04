@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1200" role="img" aria-label="Portrait illustration">
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#dfeaf6"/>
+      <stop offset="100%" stop-color="#b7d7e8"/>
+    </linearGradient>
+    <linearGradient id="shirt" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#d9b0c7"/>
+      <stop offset="100%" stop-color="#b483a5"/>
+    </linearGradient>
+    <linearGradient id="saree" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#3b5a6d"/>
+      <stop offset="100%" stop-color="#1d2e3a"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="800" height="1200" fill="url(#bg)"/>
+  <rect x="0" y="0" width="800" height="520" fill="#d7e8f1"/>
+
+  <g opacity="0.9">
+    <rect x="0" y="0" width="800" height="1200" fill="none" stroke="#c2d5e2" stroke-width="4"/>
+  </g>
+
+  <g transform="translate(0,40)">
+    <rect x="90" y="80" width="620" height="1030" rx="36" fill="rgba(255,255,255,0.12)"/>
+
+    <ellipse cx="400" cy="820" rx="280" ry="220" fill="#d8d0c7" opacity="0.88"/>
+
+    <path d="M240 680 C300 620, 500 620, 560 680 L620 1030 L180 1030 Z" fill="url(#saree)"/>
+    <path d="M300 710 L220 1050 L350 1050 L380 950 L420 1050 L552 1050 L495 710 Z" fill="#b6d0d8" opacity="0.55"/>
+    <path d="M280 710 C320 680, 470 680, 520 710 L550 980 L250 980 Z" fill="#f6f1ef" opacity="0.7"/>
+
+    <path d="M310 420 C310 310, 360 250, 400 250 C440 250, 490 310, 490 420 L490 650 L310 650 Z" fill="#f0c4a8"/>
+    <path d="M318 410 C340 350, 360 330, 400 330 C440 330, 462 350, 480 410 L470 640 L330 640 Z" fill="#1d1a26"/>
+
+    <path d="M315 530 C350 560, 450 560, 485 530 L500 628 L300 628 Z" fill="#f2d0c0" opacity="0.9"/>
+
+    <ellipse cx="350" cy="430" rx="18" ry="22" fill="#1b1d26"/>
+    <ellipse cx="450" cy="430" rx="18" ry="22" fill="#1b1d26"/>
+    <path d="M370 510 Q400 535 430 510" fill="none" stroke="#7b4b42" stroke-width="7" stroke-linecap="round"/>
+    <path d="M365 455 Q400 480 435 455" fill="none" stroke="#1b1d26" stroke-width="8" stroke-linecap="round"/>
+
+    <path d="M285 670 L240 1020 L310 1020 L330 770 L350 670 Z" fill="#e9c5d5"/>
+    <path d="M515 670 L560 1020 L490 1020 L470 770 L450 670 Z" fill="#e9c5d5"/>
+
+    <path d="M280 740 L200 690 L260 650 L310 710 Z" fill="#b783a6" opacity="0.9"/>
+    <path d="M520 740 L600 690 L540 650 L490 710 Z" fill="#b783a6" opacity="0.9"/>
+
+    <path d="M255 650 L345 670 L320 1030 L180 1030 L200 770 Z" fill="url(#shirt)"/>
+    <path d="M545 650 L455 670 L480 1030 L620 1030 L600 770 Z" fill="url(#shirt)"/>
+
+    <path d="M340 650 L430 650 L430 1030 L350 1030 Z" fill="#d9c3d5" opacity="0.75"/>
+
+    <path d="M322 647 C350 610, 450 610, 478 647" fill="none" stroke="#d8b3c2" stroke-width="18" stroke-linecap="round"/>
+
+    <g fill="#8b5e4d" opacity="0.85">
+      <circle cx="255" cy="415" r="8"/>
+      <circle cx="544" cy="415" r="8"/>
+    </g>
+
+    <g opacity="0.7">
+      <path d="M150 170 L220 120 L260 180 L210 230 Z" fill="#e5f2f7"/>
+      <path d="M600 170 L530 120 L490 180 L540 230 Z" fill="#e5f2f7"/>
+    </g>
+  </g>
+</svg>

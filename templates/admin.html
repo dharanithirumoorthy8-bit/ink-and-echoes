@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% block content %}
+  <section class="auth-shell">
+    <div class="auth-card admin-card">
+      <div class="card-header">
+        <p class="eyebrow">Your writing desk</p>
+        <h2>Paste a poem</h2>
+      </div>
+
+      <form method="post" action="/admin/poem/new" enctype="multipart/form-data" class="stack-form">
+        <label>
+          <span>Title</span>
+          <input name="title" placeholder="Moonlit Silence" required>
+        </label>
+
+        <label>
+          <span>Category</span>
+          <input name="category" placeholder="Love, grief, memory..."><br>
+        </label>
+
+        <label>
+          <span>Poem text</span>
+          <textarea name="body" rows="8" placeholder="Paste your poem here..." required></textarea>
+        </label>
+
+        <label>
+          <span>Profile image</span>
+          <input type="file" name="profile_image" accept="image/*">
+        </label>
+
+        <button type="submit">Publish poem</button>
+      </form>
+    </div>
+  </section>
+
+  <section class="feature-section">
+    <div class="section-heading">
+      <p class="eyebrow">Saved poems</p>
+      <h2>Latest entries</h2>
+    </div>
+
+    <div class="poem-grid">
+      {% for p in poems %}
+        <article class="poem-card">
+          <span class="pill">Poem</span>
+          <h3>{{ p.title }}</h3>
+          <p>{{ p.body[:180] }}{% if p.body|length > 180 %}...{% endif %}</p>
+        </article>
+      {% else %}
+        <article class="poem-card">
+          <span class="pill">Start</span>
+          <h3>No poems yet</h3>
+          <p>Paste your first poem and it will appear here.</p>
+        </article>
+      {% endfor %}
+    </div>
+  </section>
+{% endblock %}

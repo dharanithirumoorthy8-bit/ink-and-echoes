@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block content %}
+  <div class="page-shell">
+    <div class="auth-card wide-card">
+      <p class="eyebrow center">Create your space</p>
+      <h2>Register</h2>
+      <form method="post" class="stack-form">
+        <label>
+          <span>Username</span>
+          <input name="username" required>
+        </label>
+        <label>
+          <span>Email</span>
+          <input name="email" type="email" required>
+        </label>
+        <label>
+          <span>Password</span>
+          <input name="password" type="password" required>
+        </label>
+        <label>
+          <span>Date of Birth</span>
+          <input name="dob" type="date" required>
+        </label>
+        <button type="submit">Create Account</button>
+      </form>
+      <p class="switch-link">Already a member? <a href="/login">Login</a></p>
+    </div>
+  </div>
+{% endblock %}

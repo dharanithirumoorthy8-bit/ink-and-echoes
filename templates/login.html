@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block content %}
+  <div class="page-shell">
+    <div class="auth-card">
+      <p class="eyebrow center">Welcome back</p>
+      <h2>Login</h2>
+      <form method="post" class="stack-form">
+        <label>
+          <span>Username or Email</span>
+          <input name="username" required>
+        </label>
+        <label>
+          <span>Password</span>
+          <input name="password" type="password" required>
+        </label>
+        <button type="submit">Login</button>
+      </form>
+      <p class="switch-link">New here? <a href="/signup">Create an account</a></p>
+    </div>
+  </div>
+{% endblock %}
