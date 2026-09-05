@@ -45,44 +45,9 @@ def parse_date(s):
 
 @auth_bp.route('/signup', methods=['GET', 'POST'])
 def signup():
-    if current_user.is_authenticated:
-        flash('You are already registered and logged in.')
-        return redirect(url_for('index'))
-
-    if request.method == 'POST':
-        username = (request.form.get('username') or '').strip()
-        email = (request.form.get('email') or '').strip()
-        password = request.form.get('password') or ''
-        dob_s = request.form.get('dob')
-        dob = parse_date(dob_s)
-
-        if not (username and email and password and dob):
-            flash('Please fill all fields (use YYYY-MM-DD for DOB).')
-            return redirect(url_for('auth.signup'))
-
-        from datetime import date
-        today = date.today()
-        age = today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))
-        if age < 18:
-            flash('You must be 18+ to register.')
-            return redirect(url_for('auth.signup'))
-
-        existing_user = User.query.filter(
-            (User.username.ilike(username)) | (User.email.ilike(email))
-        ).first()
-        if existing_user:
-            flash('An account with that username or email already exists. Please log in instead.')
-            return redirect(url_for('auth.login'))
-
-        user = User(username=username, email=email, dob=dob)
-        user.set_password(password)
-        db.session.add(user)
-        db.session.commit()
-        login_user(user)
-        flash('Welcome — account created. You can log in anytime with these credentials.')
-        return redirect(url_for('index'))
-
-    return render_template('signup.html')
+    # Public signup is disabled. Only admin accounts are created via CLI.
+    flash('Public signup is disabled. Contact an administrator.')
+    return redirect(url_for('index'))
 
 
 @auth_bp.route('/login', methods=['GET', 'POST'])

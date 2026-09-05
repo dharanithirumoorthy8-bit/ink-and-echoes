@@ -21,14 +21,11 @@
       <nav class="nav-center">
         <a href="/poems">Poems</a>
         <a href="/chat">Chat</a>
-        {% if current_user.is_authenticated %}
-          {% if current_user.is_admin %}
-            <a href="/admin">Admin</a>
-          {% endif %}
+        {% if current_user.is_authenticated and current_user.is_admin %}
+          <a href="/admin">Admin</a>
           <a href="/logout">Logout</a>
         {% else %}
-          <a href="/signup">Register</a>
-          <a href="/login">Login</a>
+          <span class="muted">Admin login only — public submissions disabled</span>
         {% endif %}
       </nav>
     </header>

@@ -7,6 +7,11 @@
     </div>
 
     <div class="poems-list">
+      <div class="poems-meta">
+        <p class="muted">Members ever viewed this page: {{ poems_total_views }}</p>
+        <p id="active-viewers" class="muted">Active viewers: —</p>
+      </div
+      >
       {% for p in poems %}
         <article class="poem poem-card">
           <span class="pill">Poem</span>
@@ -22,4 +27,39 @@
       {% endfor %}
     </div>
   </div>
+{% endblock %}
+
+{% block scripts %}
+  <script>
+    (function(){
+      const CLIENT_KEY = 'inkandechoes_viewer_client'
+      let client = localStorage.getItem(CLIENT_KEY)
+      if(!client){ client = Math.random().toString(36).slice(2); localStorage.setItem(CLIENT_KEY, client) }
+
+      async function ping(){
+        try{
+          await fetch('/api/v1/viewers/ping', {
+            method: 'POST', headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({client_id: client, page: 'poems'})
+          })
+        }catch(e){ /* ignore */ }
+      }
+
+      async function getActive(){
+        try{
+          const res = await fetch('/api/v1/viewers/poems')
+          if(res.ok){
+            const j = await res.json()
+            const el = document.getElementById('active-viewers')
+            if(el) el.textContent = 'Active viewers: ' + j.count
+          }
+        }catch(e){ }
+      }
+
+      // initial
+      ping(); getActive();
+      setInterval(ping, 20000);
+      setInterval(getActive, 5000);
+    })();
+  </script>
 {% endblock %}

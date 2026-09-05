@@ -53,6 +53,12 @@ def create_app():
 
     db.init_app(app)
 
+    # In-memory active viewers store to avoid persisting client IDs
+    import threading
+    from datetime import datetime, timedelta
+    ACTIVE_VIEWERS = {}
+    ACTIVE_VIEWERS_LOCK = threading.Lock()
+
     login_manager = LoginManager()
     login_manager.login_view = 'auth.login'
     login_manager.init_app(app)
@@ -72,6 +78,17 @@ def create_app():
 
     from ai import ai_bp
     app.register_blueprint(ai_bp)
+
+    # expose some site-wide values to templates
+    @app.context_processor
+    def inject_site_stats():
+        try:
+            from models import PageView
+            pv = PageView.query.filter_by(page='poems').first()
+            count = pv.count if pv else 0
+        except Exception:
+            count = 0
+        return {'poems_total_views': count}
 
     @app.cli.command('init-db')
     def init_db():
@@ -154,7 +171,16 @@ def create_app():
 
     @app.route('/poems')
     def poems():
-        from models import Poem
+        from models import Poem, PageView
+        # increment poems page view counter
+        page_view = PageView.query.filter_by(page='poems').first()
+        if page_view is None:
+            page_view = PageView(page='poems', count=1)
+            db.session.add(page_view)
+        else:
+            page_view.count += 1
+        db.session.commit()
+
         poems = Poem.query.filter_by(published=True).order_by(Poem.created_at.desc()).all()
         return render_template('poems.html', poems=poems)
 
@@ -283,6 +309,35 @@ def create_app():
         _db.session.add(poem)
         _db.session.commit()
         return jsonify({'ok': True, 'id': poem.id, 'title': poem.title})
+
+    # Active viewers endpoints
+    @app.route('/api/v1/viewers/ping', methods=['POST'])
+    def api_viewers_ping():
+        if not request.is_json:
+            return (jsonify({'error':'expected JSON'}), 400)
+        payload = request.get_json()
+        client_id = (payload.get('client_id') or '').strip()
+        page = (payload.get('page') or '').strip()
+        if not client_id or not page:
+            return (jsonify({'error':'client_id and page required'}), 400)
+        from models import ActiveViewer, db as _db
+        from datetime import datetime
+        av = ActiveViewer.query.filter_by(client_id=client_id, page=page).first()
+        if av is None:
+            av = ActiveViewer(client_id=client_id, page=page, last_seen=datetime.utcnow())
+            _db.session.add(av)
+        else:
+            av.last_seen = datetime.utcnow()
+        _db.session.commit()
+        return jsonify({'ok': True})
+
+    @app.route('/api/v1/viewers/<page>')
+    def api_viewers_count(page):
+        from models import ActiveViewer
+        from datetime import datetime, timedelta
+        cutoff = datetime.utcnow() - timedelta(seconds=60)
+        count = ActiveViewer.query.filter(ActiveViewer.page==page, ActiveViewer.last_seen>=cutoff).count()
+        return jsonify({'count': count})
 
     @app.route('/suggestions', methods=['GET', 'POST'])
     def suggestions():

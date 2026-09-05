@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+{% block content %}
+  <section class="auth-shell">
+    <div class="auth-card admin-card">
+      <div class="card-header">
+        <p class="eyebrow">Site management</p>
+        <h2>Active viewers & API tokens</h2>
+      </div>
+
+      <h3>API Tokens</h3>
+      {% if tokens %}
+        <table>
+          <thead><tr><th>ID</th><th>Name</th><th>User</th><th>Created</th><th>Action</th></tr></thead>
+          <tbody>
+          {% for t in tokens %}
+            <tr>
+              <td>{{ t.id }}</td>
+              <td>{{ t.name or '' }}</td>
+              <td>{{ t.user.username }}</td>
+              <td>{{ t.created_at.strftime('%Y-%m-%d %H:%M') if t.created_at else '' }}</td>
+              <td>
+                <form method="post" action="/admin/viewers/revoke_token">
+                  <input type="hidden" name="token_id" value="{{ t.id }}">
+                  <button type="submit">Revoke</button>
+                </form>
+              </td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <p>No tokens yet.</p>
+      {% endif %}
+
+      <h3>Active Viewers</h3>
+      {% if viewers %}
+        <table>
+          <thead><tr><th>Client ID</th><th>Page</th><th>Last seen</th><th>Action</th></tr></thead>
+          <tbody>
+          {% for v in viewers %}
+            <tr>
+              <td>{{ v.client_id }}</td>
+              <td>{{ v.page }}</td>
+              <td>{{ v.last_seen.strftime('%Y-%m-%d %H:%M:%S') if v.last_seen else '' }}</td>
+              <td>
+                <form method="post" action="/admin/viewers/remove_viewer">
+                  <input type="hidden" name="client_id" value="{{ v.client_id }}">
+                  <input type="hidden" name="page" value="{{ v.page }}">
+                  <button type="submit">Remove</button>
+                </form>
+              </td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <p>No active viewers recorded.</p>
+      {% endif %}
+
+    </div>
+  </section>
+{% endblock %}

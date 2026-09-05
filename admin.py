@@ -4,7 +4,7 @@ from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
 
 from models import Category, Poem, db
-from models import Suggestion, User
+from models import Suggestion, User, ApiToken, ActiveViewer
 
 admin_bp = Blueprint('admin', __name__)
 
@@ -105,3 +105,45 @@ def admin_new_poem():
         return jsonify({'ok': True, 'title': title, 'id': poem.id, 'message': 'Poem saved successfully.'})
     flash(f'Poem saved successfully: {title}')
     return redirect(url_for('admin.admin_index'))
+
+
+@admin_bp.route('/admin/viewers')
+@login_required
+@admin_required
+def admin_viewers():
+    tokens = ApiToken.query.order_by(ApiToken.created_at.desc()).all()
+    viewers = ActiveViewer.query.order_by(ActiveViewer.last_seen.desc()).all()
+    return render_template('admin_viewers.html', tokens=tokens, viewers=viewers)
+
+
+@admin_bp.route('/admin/viewers/revoke_token', methods=['POST'])
+@login_required
+@admin_required
+def revoke_token():
+    token_id = request.form.get('token_id')
+    if not token_id:
+        flash('Token id required')
+        return redirect(url_for('admin.admin_viewers'))
+    t = ApiToken.query.get(int(token_id))
+    if not t:
+        flash('Token not found')
+        return redirect(url_for('admin.admin_viewers'))
+    db.session.delete(t)
+    db.session.commit()
+    flash('Token revoked')
+    return redirect(url_for('admin.admin_viewers'))
+
+
+@admin_bp.route('/admin/viewers/remove_viewer', methods=['POST'])
+@login_required
+@admin_required
+def remove_viewer():
+    client_id = request.form.get('client_id')
+    page = request.form.get('page')
+    if not client_id or not page:
+        flash('client_id and page required')
+        return redirect(url_for('admin.admin_viewers'))
+    ActiveViewer.query.filter_by(client_id=client_id, page=page).delete()
+    db.session.commit()
+    flash('Viewer entry removed')
+    return redirect(url_for('admin.admin_viewers'))
