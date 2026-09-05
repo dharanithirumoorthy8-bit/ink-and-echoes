@@ -141,6 +141,21 @@ def create_app():
         print('Raw token (store this somewhere safe):')
         print(raw)
 
+    @app.cli.command('backup-db')
+    def backup_db_cli():
+        """Create a timestamped backup copy of the instance SQLite database."""
+        import shutil, datetime
+        src = os.path.join(app.instance_path, 'ink_and_echoes.db')
+        if not os.path.exists(src):
+            print('No database file to backup:', src)
+            return
+        backups_dir = os.path.join(app.instance_path, 'backups')
+        os.makedirs(backups_dir, exist_ok=True)
+        ts = datetime.datetime.utcnow().strftime('%Y%m%dT%H%M%SZ')
+        dst = os.path.join(backups_dir, f'ink_and_echoes-{ts}.db')
+        shutil.copy2(src, dst)
+        print('Backed up DB to', dst)
+
     @app.route('/')
     def index():
         from models import Poem, PageView
