@@ -55,3 +55,10 @@ class History(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     poem_id = db.Column(db.Integer, db.ForeignKey('poem.id'))
     viewed_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+class Suggestion(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    message = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)

@@ -91,13 +91,35 @@ def create_app():
     @app.route('/suggestions', methods=['GET', 'POST'])
     def suggestions():
         if request.method == 'POST':
+            from models import Suggestion
+
             message = (request.form.get('message') or '').strip()
+            user_id = current_user.id if getattr(current_user, 'is_authenticated', False) else None
             if message:
+                s = Suggestion(user_id=user_id, message=message)
+                db.session.add(s)
+                db.session.commit()
                 flash('Your suggestion has been saved to the margins.')
             else:
                 flash('Write a little note before sending it.')
             return redirect(url_for('suggestions'))
         return render_template('suggestions.html')
+
+    @app.route('/admin/suggestions')
+    @login_required
+    def admin_suggestions():
+        from models import Suggestion, User
+        if not getattr(current_user, 'is_admin', False):
+            flash('Admin access required.')
+            return redirect(url_for('index'))
+        suggestions = Suggestion.query.order_by(Suggestion.created_at.desc()).all()
+        # attach user info when available
+        results = []
+        for s in suggestions:
+            user = User.query.get(s.user_id) if s.user_id else None
+            results.append({'suggestion': s, 'user': user})
+        users = User.query.order_by(User.created_at.desc()).all()
+        return render_template('admin_suggestions.html', suggestions=results, users=users)
 
     return app
 

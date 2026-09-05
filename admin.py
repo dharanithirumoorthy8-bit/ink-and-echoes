@@ -4,6 +4,7 @@ from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
 
 from models import Category, Poem, db
+from models import Suggestion, User
 
 admin_bp = Blueprint('admin', __name__)
 
@@ -30,7 +31,9 @@ def admin_required(f):
 def admin_index():
     poems = Poem.query.order_by(Poem.created_at.desc()).all()
     categories = Category.query.all()
-    return render_template('admin.html', poems=poems, categories=categories)
+    users = User.query.order_by(User.created_at.desc()).all()
+    suggestions = Suggestion.query.order_by(Suggestion.created_at.desc()).all()
+    return render_template('admin.html', poems=poems, categories=categories, users=users, suggestions=suggestions)
 
 
 @admin_bp.route('/admin/poem/new', methods=['POST'])

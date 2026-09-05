@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block content %}
+  <section class="page-shell">
+    <div class="section-heading">
+      <p class="eyebrow">Admin</p>
+      <h2>Suggestions & Users</h2>
+    </div>
+
+    <div class="suggestions-list">
+      <h3>Suggestions</h3>
+      {% for item in suggestions %}
+        <div class="suggestion-item">
+          <p class="meta">{% if item.user %}From {{ item.user.username }} ({{ item.user.email }}){% else %}From anonymous{% endif %} — {{ item.suggestion.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+          <div class="message">{{ item.suggestion.message }}</div>
+        </div>
+      {% else %}
+        <p>No suggestions yet.</p>
+      {% endfor %}
+    </div>
+
+    <div class="users-list">
+      <h3>Registered users</h3>
+      <ul>
+        {% for u in users %}
+          <li>{{ u.username }} — {{ u.email }}</li>
+        {% else %}
+          <li>No users yet.</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </section>
+{% endblock %}

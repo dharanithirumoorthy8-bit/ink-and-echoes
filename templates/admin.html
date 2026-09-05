@@ -55,4 +55,36 @@
       {% endfor %}
     </div>
   </section>
+  
+  <section class="feature-section">
+    <div class="section-heading">
+      <p class="eyebrow">Community</p>
+      <h2>Suggestions & Users</h2>
+    </div>
+
+    <div class="two-column">
+      <div>
+        <h3>Suggestions</h3>
+        {% for s in suggestions %}
+          <div class="suggestion-item">
+            <p class="meta">{% if s.user_id %}User ID {{ s.user_id }}{% else %}Anonymous{% endif %} — {{ s.created_at.strftime('%Y-%m-%d') }}</p>
+            <div class="message">{{ s.message }}</div>
+          </div>
+        {% else %}
+          <p>No suggestions yet.</p>
+        {% endfor %}
+      </div>
+
+      <div>
+        <h3>Registered users</h3>
+        <ul>
+          {% for u in users %}
+            <li>{{ u.username }} — {{ u.email }}</li>
+          {% else %}
+            <li>No users yet.</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </section>
 {% endblock %}
