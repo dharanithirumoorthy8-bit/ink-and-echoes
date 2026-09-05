@@ -9,6 +9,10 @@ from models import Suggestion, User
 admin_bp = Blueprint('admin', __name__)
 
 
+def normalize_poem_text(value):
+    return ' '.join((value or '').strip().split()).lower()
+
+
 def admin_required(f):
     from functools import wraps
 
@@ -57,6 +61,21 @@ def admin_new_poem():
         flash('Please add both a title and the poem text.')
         return redirect(url_for('admin.admin_index'))
 
+    normalized_title = normalize_poem_text(title)
+    normalized_body = normalize_poem_text(body)
+    duplicate_poem = None
+    for poem in Poem.query.filter_by(published=True).all():
+        if normalize_poem_text(poem.title) == normalized_title and normalize_poem_text(poem.body) == normalized_body:
+            duplicate_poem = poem
+            break
+
+    if duplicate_poem:
+        message = f'This poem already exists in the library and was not added again.'
+        if request.is_json:
+            return jsonify({'ok': False, 'error': 'duplicate', 'message': message})
+        flash(message)
+        return redirect(url_for('admin.admin_index'))
+
     category = None
     if category_name:
         category = Category.query.filter_by(name=category_name).first()
@@ -83,6 +102,6 @@ def admin_new_poem():
 
     db.session.commit()
     if request.is_json:
-        return jsonify({'ok': True, 'title': title, 'id': poem.id})
-    flash(f'New poem published: {title}')
+        return jsonify({'ok': True, 'title': title, 'id': poem.id, 'message': 'Poem saved successfully.'})
+    flash(f'Poem saved successfully: {title}')
     return redirect(url_for('admin.admin_index'))

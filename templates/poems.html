@@ -6,24 +6,12 @@
       <h2>Poems</h2>
     </div>
 
-    {% if not current_user.is_authenticated %}
-      <div class="auth-gate">
-        <p>Register to unlock the full reading experience and access the deeper poem archive.</p>
-        <a class="btn btn-primary" href="/signup">Register to continue</a>
-      </div>
-    {% endif %}
-
     <div class="poems-list">
       {% for p in poems %}
         <article class="poem poem-card">
           <span class="pill">Poem</span>
           <h3>{{ p.title }}</h3>
-          {% if full_view or current_user.is_authenticated %}
-            <div class="body">{{ p.body }}</div>
-          {% else %}
-            <div class="body">{{ p.body[:180] }}{% if p.body|length > 180 %}...{% endif %}</div>
-            <a class="text-link" href="/signup">Register to read full poem</a>
-          {% endif %}
+          <div class="body">{{ p.body }}</div>
         </article>
       {% else %}
         <article class="poem poem-card empty-poem">

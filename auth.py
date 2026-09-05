@@ -1,7 +1,7 @@
 import os
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from datetime import datetime
-from flask_login import login_user, logout_user, login_required
+from flask_login import login_user, logout_user, login_required, current_user
 
 from models import User, db
 
@@ -45,10 +45,14 @@ def parse_date(s):
 
 @auth_bp.route('/signup', methods=['GET', 'POST'])
 def signup():
+    if current_user.is_authenticated:
+        flash('You are already registered and logged in.')
+        return redirect(url_for('index'))
+
     if request.method == 'POST':
-        username = request.form.get('username')
-        email = request.form.get('email')
-        password = request.form.get('password')
+        username = (request.form.get('username') or '').strip()
+        email = (request.form.get('email') or '').strip()
+        password = request.form.get('password') or ''
         dob_s = request.form.get('dob')
         dob = parse_date(dob_s)
 
@@ -56,7 +60,6 @@ def signup():
             flash('Please fill all fields (use YYYY-MM-DD for DOB).')
             return redirect(url_for('auth.signup'))
 
-        # age verification
         from datetime import date
         today = date.today()
         age = today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))
@@ -64,16 +67,19 @@ def signup():
             flash('You must be 18+ to register.')
             return redirect(url_for('auth.signup'))
 
-        if User.query.filter((User.username == username) | (User.email == email)).first():
-            flash('User with that username or email already exists.')
-            return redirect(url_for('auth.signup'))
+        existing_user = User.query.filter(
+            (User.username.ilike(username)) | (User.email.ilike(email))
+        ).first()
+        if existing_user:
+            flash('An account with that username or email already exists. Please log in instead.')
+            return redirect(url_for('auth.login'))
 
         user = User(username=username, email=email, dob=dob)
         user.set_password(password)
         db.session.add(user)
         db.session.commit()
         login_user(user)
-        flash('Welcome — account created.')
+        flash('Welcome — account created. You can log in anytime with these credentials.')
         return redirect(url_for('index'))
 
     return render_template('signup.html')
@@ -81,6 +87,10 @@ def signup():
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
+    if current_user.is_authenticated:
+        flash('You are already logged in.')
+        return redirect(url_for('index'))
+
     if request.method == 'POST':
         username = (request.form.get('username') or '').strip()
         password = request.form.get('password') or ''

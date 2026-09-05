@@ -1,8 +1,9 @@
 import os
 import unittest
+from datetime import date
 
 from app import create_app
-from models import User, db
+from models import User, Poem, db
 
 
 class AdminAuthTests(unittest.TestCase):
@@ -52,6 +53,56 @@ class AdminAuthTests(unittest.TestCase):
         admin_user = User.query.filter_by(username='admin').first()
         self.assertIsNotNone(admin_user)
         self.assertTrue(admin_user.is_admin)
+
+    def test_signup_rejects_existing_user_and_logged_in_user_is_redirected(self):
+        client = self.app.test_client()
+
+        user = User(username='existing-user', email='existing@example.com', dob=date(2000, 1, 1))
+        user.set_password('secretpass')
+        db.session.add(user)
+        db.session.commit()
+
+        response = client.post('/signup', data={
+            'username': 'existing-user',
+            'email': 'existing@example.com',
+            'password': 'newpass',
+            'dob': '2000-01-01',
+        }, follow_redirects=False)
+        self.assertEqual(response.status_code, 302)
+
+        login_response = client.post('/login', data={
+            'username': 'existing-user',
+            'password': 'secretpass',
+        }, follow_redirects=False)
+        self.assertEqual(login_response.status_code, 302)
+
+        redirected = client.get('/signup', follow_redirects=False)
+        self.assertEqual(redirected.status_code, 302)
+
+    def test_admin_poem_upload_is_one_time_only_and_full_poem_is_visible(self):
+        client = self.app.test_client()
+        login_response = client.post('/login', data={
+            'username': 'admin-keeper',
+            'password': 'very-secret-admin-password',
+        }, follow_redirects=False)
+        self.assertEqual(login_response.status_code, 302)
+
+        poem_payload = {
+            'title': 'Echoes of Dawn',
+            'category': 'love,grief',
+            'body': 'I carry the morning like a lantern in my hands.'
+        }
+
+        first_upload = client.post('/admin/poem/new', data=poem_payload, follow_redirects=False)
+        self.assertEqual(first_upload.status_code, 302)
+        self.assertEqual(Poem.query.filter_by(title='Echoes of Dawn').count(), 1)
+
+        duplicate_upload = client.post('/admin/poem/new', data=poem_payload, follow_redirects=False)
+        self.assertEqual(duplicate_upload.status_code, 302)
+        self.assertEqual(Poem.query.filter_by(title='Echoes of Dawn').count(), 1)
+
+        poem_page = client.get('/poems', follow_redirects=True)
+        self.assertIn('I carry the morning like a lantern in my hands.', poem_page.get_data(as_text=True))
 
 
 if __name__ == '__main__':

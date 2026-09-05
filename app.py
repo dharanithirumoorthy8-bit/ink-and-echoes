@@ -78,7 +78,6 @@ def create_app():
         return render_template('poems.html', poems=poems)
 
     @app.route('/poems/full')
-    @login_required
     def poems_full():
         from models import Poem
         poems = Poem.query.filter_by(published=True).order_by(Poem.created_at.desc()).all()
