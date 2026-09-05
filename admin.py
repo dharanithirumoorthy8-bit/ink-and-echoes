@@ -1,5 +1,5 @@
 import os
-from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app
+from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app, jsonify
 from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
 
@@ -40,11 +40,20 @@ def admin_index():
 @login_required
 @admin_required
 def admin_new_poem():
-    title = (request.form.get('title') or '').strip()
-    body = (request.form.get('body') or '').strip()
-    category_name = (request.form.get('category') or '').strip()
+    # Support both regular form POSTS (browser) and JSON sync POSTs (offline sync)
+    if request.is_json:
+        payload = request.get_json()
+        title = (payload.get('title') or '').strip()
+        body = (payload.get('body') or '').strip()
+        category_name = (payload.get('category') or '').strip()
+    else:
+        title = (request.form.get('title') or '').strip()
+        body = (request.form.get('body') or '').strip()
+        category_name = (request.form.get('category') or '').strip()
 
     if not title or not body:
+        if request.is_json:
+            return ({'error': 'Title and body required'}, 400)
         flash('Please add both a title and the poem text.')
         return redirect(url_for('admin.admin_index'))
 
@@ -59,17 +68,21 @@ def admin_new_poem():
     poem = Poem(title=title, body=body, category_id=category.id if category else None, published=True)
     db.session.add(poem)
 
-    image_file = request.files.get('profile_image')
-    if image_file and image_file.filename:
-        allowed = {'.png', '.jpg', '.jpeg', '.webp'}
-        ext = os.path.splitext(image_file.filename)[1].lower()
-        if ext in allowed:
-            upload_dir = os.path.join(current_app.static_folder, 'img')
-            os.makedirs(upload_dir, exist_ok=True)
-            filename = 'profile-portrait' + ext
-            image_file.save(os.path.join(upload_dir, filename))
-            flash('Your profile image was updated.')
+    # Only handle image when form POST includes file upload
+    if not request.is_json:
+        image_file = request.files.get('profile_image')
+        if image_file and image_file.filename:
+            allowed = {'.png', '.jpg', '.jpeg', '.webp'}
+            ext = os.path.splitext(image_file.filename)[1].lower()
+            if ext in allowed:
+                upload_dir = os.path.join(current_app.static_folder, 'img')
+                os.makedirs(upload_dir, exist_ok=True)
+                filename = 'profile-portrait' + ext
+                image_file.save(os.path.join(upload_dir, filename))
+                flash('Your profile image was updated.')
 
     db.session.commit()
+    if request.is_json:
+        return jsonify({'ok': True, 'title': title, 'id': poem.id})
     flash(f'New poem published: {title}')
     return redirect(url_for('admin.admin_index'))
