@@ -1,19 +1,49 @@
 import os
 from datetime import datetime
+import click
 from flask import Flask, render_template, redirect, url_for, request, flash, jsonify
+from werkzeug.security import check_password_hash
 from flask_login import LoginManager, login_required, current_user
 from models import db
 
 
 def create_app():
-    app = Flask(__name__)
-    app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret')
+    # Use instance folder for persistent runtime data (DB, secret key)
+    app = Flask(__name__, instance_relative_config=True)
+
+    # Ensure instance folder exists so files persist across restarts
+    try:
+        os.makedirs(app.instance_path, exist_ok=True)
+    except Exception:
+        pass
+
+    # Load or create a persistent secret key stored in the instance folder
+    secret_file = os.path.join(app.instance_path, 'secret_key')
+    secret_key = os.environ.get('SECRET_KEY')
+    if not secret_key:
+        try:
+            if os.path.exists(secret_file):
+                with open(secret_file, 'rb') as fh:
+                    secret_key = fh.read().decode('utf-8')
+            else:
+                secret_key = os.urandom(24).hex()
+                with open(secret_file, 'wb') as fh:
+                    fh.write(secret_key.encode('utf-8'))
+        except Exception:
+            # fallback to dev-secret when filesystem is unavailable
+            secret_key = 'dev-secret'
+
+    app.config['SECRET_KEY'] = secret_key
     app.config['ADMIN_USERNAME'] = os.environ.get('ADMIN_USERNAME', 'admin')
     app.config['ADMIN_PASSWORD'] = os.environ.get('ADMIN_PASSWORD', 'admin123')
-    app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get(
-        'DATABASE_URL',
-        'sqlite:///ink_and_echoes.db'
-    )
+
+    # Prefer explicit DATABASE_URL env var; otherwise use a file inside instance/
+    database_url = os.environ.get('DATABASE_URL')
+    if not database_url:
+        db_path = os.path.join(app.instance_path, 'ink_and_echoes.db')
+        database_url = 'sqlite:///' + os.path.abspath(db_path).replace('\\', '/')
+
+    app.config['SQLALCHEMY_DATABASE_URI'] = database_url
     if app.config['SQLALCHEMY_DATABASE_URI'].startswith('postgres'):
         app.config['SQLALCHEMY_DATABASE_URI'] = app.config['SQLALCHEMY_DATABASE_URI'].replace(
             'postgres://', 'postgresql://', 1
@@ -42,6 +72,57 @@ def create_app():
 
     from ai import ai_bp
     app.register_blueprint(ai_bp)
+
+    @app.cli.command('init-db')
+    def init_db():
+        """Initialize the database (create tables) and ensure admin user exists."""
+        from models import db as _db
+        _db.create_all()
+        try:
+            from auth import get_admin_user
+            get_admin_user()
+        except Exception:
+            pass
+        print('Database initialized and admin user ensured.')
+
+    @app.cli.command('create-admin')
+    @click.option('--username', '-u', required=True, help='Admin username')
+    @click.option('--password', '-p', required=True, help='Admin password')
+    def create_admin(username, password):
+        """Create or update an administrator account."""
+        from models import User, db as _db
+        user = User.query.filter_by(username=username).first()
+        if user is None:
+            user = User(username=username, email=f'{username}@admin.local', is_admin=True)
+            user.set_password(password)
+            _db.session.add(user)
+            _db.session.commit()
+            print(f'Created admin user: {username}')
+        else:
+            user.is_admin = True
+            user.set_password(password)
+            _db.session.commit()
+            print(f'Updated admin user: {username}')
+
+    @app.cli.command('create-token')
+    @click.option('--username', '-u', required=True, help='Admin username to attach token')
+    @click.option('--name', '-n', required=False, help='Token name')
+    def create_token(username, name):
+        """Create a new API token for an admin user and print the raw token."""
+        from models import User, ApiToken, db as _db
+        import secrets
+        user = User.query.filter((User.username == username) | (User.email == username)).first()
+        if not user or not getattr(user, 'is_admin', False):
+            print('User not found or not an admin')
+            return
+        raw = secrets.token_urlsafe(32)
+        token_hash = generate_password_hash(raw)
+        t = ApiToken(user_id=user.id, name=name, token_hash=token_hash)
+        _db.session.add(t)
+        _db.session.commit()
+        print('Created token for', username)
+        print('Raw token (store this somewhere safe):')
+        print(raw)
 
     @app.route('/')
     def index():
@@ -86,6 +167,122 @@ def create_app():
     @app.route('/chat')
     def chat():
         return render_template('chat.html')
+
+    # Simple JSON API (v1)
+    @app.route('/api/v1/poems')
+    def api_poems():
+        from models import Poem, Category
+        poems = Poem.query.filter_by(published=True).order_by(Poem.created_at.desc()).all()
+        out = []
+        for p in poems:
+            cat_name = None
+            if p.category_id:
+                c = Category.query.get(p.category_id)
+                cat_name = c.name if c else None
+            out.append({
+                'id': p.id,
+                'title': p.title,
+                'body': p.body,
+                'category': cat_name,
+                'created_at': p.created_at.isoformat() if p.created_at else None,
+            })
+        return jsonify(out)
+
+    @app.route('/api/v1/poems/<int:poem_id>')
+    def api_poem_detail(poem_id):
+        from models import Poem, Category
+        p = Poem.query.get(poem_id)
+        if p is None or not p.published:
+            return (jsonify({'error': 'not found'}), 404)
+        cat_name = None
+        if p.category_id:
+            c = Category.query.get(p.category_id)
+            cat_name = c.name if c else None
+        return jsonify({
+            'id': p.id,
+            'title': p.title,
+            'body': p.body,
+            'category': cat_name,
+            'created_at': p.created_at.isoformat() if p.created_at else None,
+        })
+
+    def _is_admin_request():
+        # Allow when logged in as admin
+        try:
+            if getattr(current_user, 'is_authenticated', False) and getattr(current_user, 'is_admin', False):
+                return True
+        except Exception:
+            pass
+
+        # Allow X-API-KEY header equal to SECRET_KEY
+        api_key = request.headers.get('X-API-KEY')
+        if api_key and api_key == app.config.get('SECRET_KEY'):
+            return True
+
+        # Allow HTTP Basic auth: username:password
+        auth = request.headers.get('Authorization')
+        if auth and auth.startswith('Basic '):
+            try:
+                import base64
+                from models import User
+                creds = base64.b64decode(auth.split(' ', 1)[1]).decode('utf-8')
+                username, password = creds.split(':', 1)
+                user = User.query.filter((User.username == username) | (User.email == username)).first()
+                if user and user.check_password(password) and getattr(user, 'is_admin', False):
+                    return True
+            except Exception:
+                pass
+
+        # Allow Bearer token: check ApiToken table
+        if auth and auth.startswith('Bearer '):
+            try:
+                token = auth.split(' ', 1)[1]
+                from models import ApiToken
+                # check all tokens (hashed) for a match
+                for t in ApiToken.query.all():
+                    if check_password_hash(t.token_hash, token) and getattr(t.user, 'is_admin', False):
+                        return True
+            except Exception:
+                pass
+        return False
+
+    @app.route('/api/v1/poems', methods=['POST'])
+    def api_poems_create():
+        if not _is_admin_request():
+            return (jsonify({'error': 'unauthorized'}), 401)
+        if not request.is_json:
+            return (jsonify({'error': 'expected JSON body'}), 400)
+        payload = request.get_json()
+        title = (payload.get('title') or '').strip()
+        body = (payload.get('body') or '').strip()
+        category_name = (payload.get('category') or '').strip()
+        published = bool(payload.get('published', True))
+        if not title or not body:
+            return (jsonify({'error': 'title and body required'}), 400)
+
+        from models import Poem, Category, db as _db
+
+        def normalize_text(s):
+            return ' '.join((s or '').strip().split()).lower()
+
+        normalized_title = normalize_text(title)
+        normalized_body = normalize_text(body)
+        for poem in Poem.query.filter_by(published=True).all():
+            if normalize_text(poem.title) == normalized_title and normalize_text(poem.body) == normalized_body:
+                return (jsonify({'ok': False, 'error': 'duplicate'}), 409)
+
+        category = None
+        if category_name:
+            category = Category.query.filter_by(name=category_name).first()
+            if not category:
+                category = Category(name=category_name)
+                _db.session.add(category)
+                _db.session.flush()
+
+        poem = Poem(title=title, body=body, category_id=category.id if category else None, published=published)
+        _db.session.add(poem)
+        _db.session.commit()
+        return jsonify({'ok': True, 'id': poem.id, 'title': poem.title})
 
     @app.route('/suggestions', methods=['GET', 'POST'])
     def suggestions():
