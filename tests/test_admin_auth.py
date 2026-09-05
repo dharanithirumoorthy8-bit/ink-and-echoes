@@ -104,6 +104,43 @@ class AdminAuthTests(unittest.TestCase):
         poem_page = client.get('/poems', follow_redirects=True)
         self.assertIn('I carry the morning like a lantern in my hands.', poem_page.get_data(as_text=True))
 
+    def test_admin_can_delete_poem_but_regular_users_cannot(self):
+        client = self.app.test_client()
+
+        poem = Poem(title='Fragile Sky', body='A little rain remembers the road.', published=True)
+        db.session.add(poem)
+        db.session.commit()
+
+        login_response = client.post('/login', data={
+            'username': 'admin-keeper',
+            'password': 'very-secret-admin-password',
+        }, follow_redirects=False)
+        self.assertEqual(login_response.status_code, 302)
+
+        delete_response = client.post(f'/admin/poem/{poem.id}/delete', follow_redirects=False)
+        self.assertEqual(delete_response.status_code, 302)
+        self.assertIsNone(Poem.query.get(poem.id))
+
+        regular_user = User(username='reader', email='reader@example.com', dob=date(1999, 5, 10))
+        regular_user.set_password('readerpass')
+        db.session.add(regular_user)
+        db.session.commit()
+
+        client.get('/logout', follow_redirects=False)
+        login_response = client.post('/login', data={
+            'username': 'reader',
+            'password': 'readerpass',
+        }, follow_redirects=False)
+        self.assertEqual(login_response.status_code, 302)
+
+        second_poem = Poem(title='Another Sky', body='The night stays patient.', published=True)
+        db.session.add(second_poem)
+        db.session.commit()
+
+        forbidden_response = client.post(f'/admin/poem/{second_poem.id}/delete', follow_redirects=False)
+        self.assertIn(forbidden_response.status_code, (302, 401))
+        self.assertIsNotNone(Poem.query.get(second_poem.id))
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -49,6 +49,9 @@
           <span class="pill">Poem</span>
           <h3>{{ p.title }}</h3>
           <p>{{ p.body[:180] }}{% if p.body|length > 180 %}...{% endif %}</p>
+          <form method="post" action="{{ url_for('admin.admin_delete_poem', poem_id=p.id) }}" onsubmit="return confirm('Delete this poem?');">
+            <button type="submit" class="danger-button">Delete</button>
+          </form>
         </article>
       {% else %}
         <article class="poem-card">

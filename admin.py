@@ -107,6 +107,21 @@ def admin_new_poem():
     return redirect(url_for('admin.admin_index'))
 
 
+@admin_bp.route('/admin/poem/<int:poem_id>/delete', methods=['POST'])
+@login_required
+@admin_required
+def admin_delete_poem(poem_id):
+    poem = Poem.query.get(poem_id)
+    if poem is None:
+        flash('Poem not found.')
+        return redirect(url_for('admin.admin_index'))
+
+    db.session.delete(poem)
+    db.session.commit()
+    flash(f'Poem deleted: {poem.title}')
+    return redirect(url_for('admin.admin_index'))
+
+
 @admin_bp.route('/admin/viewers')
 @login_required
 @admin_required
