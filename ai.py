@@ -167,10 +167,25 @@ def chat():
         return jsonify({'error': 'no message'}), 400
 
     api_key = os.environ.get('OPENAI_API_KEY')
+    # If an API key is available, prefer calling the upstream API. Try these
+    # sources for the model name (in order): env FINE_TUNED_MODEL, instance file,
+    # then the default base model.
     if api_key:
+        model_name = os.environ.get('FINE_TUNED_MODEL')
+        if not model_name:
+            try:
+                with open(os.path.join('instance', 'fine_tuned_model.txt'), 'r', encoding='utf-8') as rf:
+                    candidate = rf.read().strip()
+                    if candidate:
+                        model_name = candidate
+            except Exception:
+                # file missing or unreadable; ignore and fall back
+                pass
+        if not model_name:
+            model_name = 'gpt-4o-mini'
         headers = {'Authorization': f'Bearer {api_key}', 'Content-Type': 'application/json'}
         payload = {
-            'model': 'gpt-4o-mini',
+            'model': model_name,
             'messages': [
                 {'role': 'system', 'content': 'You are a poetic writing companion for a poetry website. Keep replies warm, supportive, and short but thoughtful.'},
                 {'role': 'user', 'content': message}
@@ -181,7 +196,16 @@ def chat():
             resp = requests.post('https://api.openai.com/v1/chat/completions', json=payload, headers=headers, timeout=15)
             resp.raise_for_status()
             j = resp.json()
-            content = j['choices'][0]['message']['content']
+            # robustly extract content for chat or older completion formats
+            content = None
+            if 'choices' in j and j['choices']:
+                first = j['choices'][0]
+                if isinstance(first.get('message'), dict):
+                    content = first['message'].get('content')
+                else:
+                    content = first.get('text')
+            if not content:
+                raise ValueError('no content in response')
             return jsonify({'reply': content})
         except Exception:
             current_app.logger.exception('AI request failed; using local poem companion fallback')
