@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+{% block title %}Manage Categories - Admin{% endblock %}
+{% block content %}
+  <section class="admin-section">
+    <div class="admin-header">
+      <h1>MANAGE CATEGORIES</h1>
+      <p>Add, view, and delete poem categories.</p>
+    </div>
+
+    <div class="admin-form-wrapper">
+      <div class="category-add-form">
+        <h3>Add New Category</h3>
+        <form method="post" class="form-inline">
+          <input type="hidden" name="action" value="add">
+          <div class="form-group">
+            <input 
+              type="text" 
+              name="name" 
+              placeholder="Category name (e.g., Love, Grief, Hope)"
+              required
+              class="form-input"
+            >
+          </div>
+          <button type="submit" class="btn btn-primary">ADD CATEGORY</button>
+        </form>
+      </div>
+
+      <div class="categories-list">
+        <h3>Existing Categories</h3>
+        {% if categories %}
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Category Name</th>
+                <th>Poems Using</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for category in categories %}
+                <tr>
+                  <td>{{ category.name }}</td>
+                  <td>{{ category_usage.get(category.id, 0) }} poems</td>
+                  <td>
+                    {% if category_usage.get(category.id, 0) == 0 %}
+                      <form method="post" style="display:inline;">
+                        <input type="hidden" name="action" value="delete">
+                        <input type="hidden" name="category_id" value="{{ category.id }}">
+                        <button type="submit" class="btn btn-danger btn-small" onclick="return confirm('Delete this category?')">Delete</button>
+                      </form>
+                    {% else %}
+                      <span class="text-muted">In use ({{ category_usage.get(category.id, 0) }} poems)</span>
+                    {% endif %}
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        {% else %}
+          <p>No categories created yet. Add one above to get started.</p>
+        {% endif %}
+      </div>
+    </div>
+  </section>
+
+  <style>
+    .form-inline {
+      display: flex;
+      gap: 10px;
+      align-items: flex-end;
+      flex-wrap: wrap;
+    }
+    .form-inline .form-group {
+      flex: 1;
+      min-width: 250px;
+      margin-bottom: 0;
+    }
+    .admin-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    .admin-table th, .admin-table td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+    }
+    .admin-table th {
+      background: rgba(100, 50, 150, 0.1);
+      font-weight: 600;
+    }
+    .btn-small {
+      padding: 6px 12px;
+      font-size: 0.9em;
+    }
+    .btn-danger {
+      background: #c53030;
+      color: white;
+    }
+    .btn-danger:hover {
+      background: #9b2c2c;
+    }
+    .text-muted {
+      color: #999;
+    }
+  </style>
+{% endblock %}
