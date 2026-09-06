@@ -1,29 +1,237 @@
 {% extends 'base.html' %}
+
 {% block content %}
-  <div class="page-shell">
-    <div class="auth-card wide-card">
-      <p class="eyebrow center">Create your space</p>
-      <h2>Register</h2>
-      <form method="post" class="stack-form">
-        <label>
-          <span>Username</span>
-          <input name="username" required>
-        </label>
-        <label>
-          <span>Email</span>
-          <input name="email" type="email" required>
-        </label>
-        <label>
-          <span>Password</span>
-          <input name="password" type="password" required>
-        </label>
-        <label>
-          <span>Date of Birth</span>
-          <input name="dob" type="date" required>
-        </label>
-        <button type="submit">Create Account</button>
-      </form>
-      <p class="switch-link">Already a member? <a href="/login">Login</a></p>
+
+<section class="auth-page">
+
+    <!-- Background decoration -->
+    <div class="auth-orb auth-orb-one"></div>
+    <div class="auth-orb auth-orb-two"></div>
+
+    <div class="auth-layout">
+
+        <!-- =================================================
+             LEFT — POETRY INTRO
+             ================================================= -->
+
+        <div class="auth-intro">
+
+            <div class="auth-moon">
+                ☾
+            </div>
+
+            <div class="auth-stars">
+                <span>✦</span>
+                <span>✧</span>
+                <span>·</span>
+                <span>✦</span>
+            </div>
+
+            <p class="auth-kicker">
+                ✦ BEGIN YOUR JOURNEY ✦
+            </p>
+
+            <h1>
+                Create<br>
+                <span>your space.</span>
+            </h1>
+
+            <div class="auth-divider">
+                <span></span>
+                ✦
+                <span></span>
+            </div>
+
+            <p class="auth-quote">
+                “Every writer has a place<br>
+                where their quietest thoughts<br>
+                become words.”
+            </p>
+
+            <p class="auth-description">
+                Create your little corner inside
+                Moonlit Marginalia — a place to
+                read, save and discover poetry.
+            </p>
+
+        </div>
+
+
+        <!-- =================================================
+             RIGHT — REGISTER CARD
+             ================================================= -->
+
+        <div class="auth-card premium-auth-card signup-card">
+
+            <div class="auth-card-symbol">
+                ✦
+            </div>
+
+            <p class="eyebrow center">
+                JOIN THE COLLECTION
+            </p>
+
+            <h2>
+                Create Account
+            </h2>
+
+            <p class="auth-card-subtitle">
+                Give your thoughts a place to stay.
+            </p>
+
+
+            <form
+                method="post"
+                class="stack-form premium-auth-form"
+            >
+
+                <!-- USERNAME -->
+
+                <label>
+
+                    <span>
+                        USERNAME
+                    </span>
+
+                    <div class="auth-input-wrap">
+
+                        <span class="input-icon">
+                            ◇
+                        </span>
+
+                        <input
+                            name="username"
+                            type="text"
+                            autocomplete="username"
+                            placeholder="Choose a username"
+                            required
+                        >
+
+                    </div>
+
+                </label>
+
+
+                <!-- EMAIL -->
+
+                <label>
+
+                    <span>
+                        EMAIL
+                    </span>
+
+                    <div class="auth-input-wrap">
+
+                        <span class="input-icon">
+                            @
+                        </span>
+
+                        <input
+                            name="email"
+                            type="email"
+                            autocomplete="email"
+                            placeholder="Enter your email address"
+                            required
+                        >
+
+                    </div>
+
+                </label>
+
+
+                <!-- PASSWORD -->
+
+                <label>
+
+                    <span>
+                        PASSWORD
+                    </span>
+
+                    <div class="auth-input-wrap">
+
+                        <span class="input-icon">
+                            ◈
+                        </span>
+
+                        <input
+                            name="password"
+                            type="password"
+                            autocomplete="new-password"
+                            placeholder="Create a password"
+                            required
+                        >
+
+                    </div>
+
+                </label>
+
+
+                <!-- DATE OF BIRTH -->
+
+                <label>
+
+                    <span>
+                        DATE OF BIRTH
+                    </span>
+
+                    <div class="auth-input-wrap">
+
+                        <span class="input-icon">
+                            ◷
+                        </span>
+
+                        <input
+                            name="dob"
+                            type="date"
+                            autocomplete="bday"
+                            required
+                        >
+
+                    </div>
+
+                </label>
+
+
+                <!-- CREATE ACCOUNT -->
+
+                <button
+                    type="submit"
+                    class="auth-submit-btn"
+                >
+                    <span>✦</span>
+                    CREATE MY SPACE
+                    <strong>→</strong>
+                </button>
+
+            </form>
+
+
+            <div class="auth-bottom-line">
+                <span></span>
+                ✧
+                <span></span>
+            </div>
+
+
+            <p class="switch-link auth-switch">
+
+                Already part of the collection?
+
+                <a href="/login">
+                    Login →
+                </a>
+
+            </p>
+
+
+            <p class="auth-note">
+                ✦ Your journey begins with a single word.
+            </p>
+
+        </div>
+
     </div>
-  </div>
+
+</section>
+
 {% endblock %}
