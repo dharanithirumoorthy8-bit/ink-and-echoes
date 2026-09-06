@@ -54,27 +54,32 @@ class AdminAuthTests(unittest.TestCase):
         self.assertIsNotNone(admin_user)
         self.assertTrue(admin_user.is_admin)
 
-    def test_signup_rejects_existing_user_and_logged_in_user_is_redirected(self):
+    def test_signup_persists_user_and_rejects_duplicates(self):
         client = self.app.test_client()
-
-        user = User(username='existing-user', email='existing@example.com', dob=date(2000, 1, 1))
-        user.set_password('secretpass')
-        db.session.add(user)
-        db.session.commit()
 
         response = client.post('/signup', data={
             'username': 'existing-user',
-            'email': 'existing@example.com',
-            'password': 'newpass',
+            'email': 'existing@gmail.com',
+            'password': 'secretpass',
             'dob': '2000-01-01',
         }, follow_redirects=False)
         self.assertEqual(response.status_code, 302)
+        self.assertIsNotNone(User.query.filter_by(email='existing@gmail.com').first())
 
         login_response = client.post('/login', data={
             'username': 'existing-user',
             'password': 'secretpass',
         }, follow_redirects=False)
         self.assertEqual(login_response.status_code, 302)
+
+        duplicate_response = self.app.test_client().post('/signup', data={
+            'username': 'existing-user',
+            'email': 'existing@gmail.com',
+            'password': 'newpass',
+            'dob': '2000-01-01',
+        }, follow_redirects=False)
+        self.assertEqual(duplicate_response.status_code, 302)
+        self.assertEqual(User.query.filter_by(username='existing-user').count(), 1)
 
         redirected = client.get('/signup', follow_redirects=False)
         self.assertEqual(redirected.status_code, 302)
