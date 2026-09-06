@@ -1,206 +1,321 @@
 {% extends 'base.html' %}
+
 {% block content %}
-  <section class="hero-shell">
-    <div class="hero-copy">
-      <p class="eyebrow">A quiet sanctuary for verses</p>
-      <h1>MOONLIT MARGINALIA</h1>
-      <p class="subtitle">"A quiet home for every poem I could never say aloud."</p>
 
-      <div class="hero-actions">
-        <a class="btn btn-primary" href="/poems">ENTER MY POETRY LIBRARY</a>
-        {% if featured_poem %}
-          <a class="btn btn-secondary" href="/poem/{{ featured_poem.id }}">READ FEATURED POEM</a>
-        {% endif %}
-        <a class="btn btn-tertiary" href="/chat">TALK TO THE COMPANION</a>
-      </div>
+<!-- ================= HOME HERO ================= -->
+<section class="poetry-hero">
 
-      <div class="collection-stats">
-        <div class="stat-card">
-          <span class="stat-number">{{ total_poems }}</span>
-          <span class="stat-label">Poems</span>
-        </div>
-        <div class="stat-card">
-          <span class="stat-number">{{ total_categories }}</span>
-          <span class="stat-label">Categories</span>
-        </div>
-        <div class="stat-card">
-          <span class="stat-number">{{ total_favorites }}</span>
-          <span class="stat-label">Favorites</span>
-        </div>
-        {% if latest_poem %}
-          <div class="stat-card">
-            <span class="stat-label">Latest Poem</span>
-            <span class="stat-title">{{ latest_poem.title }}</span>
-          </div>
-        {% endif %}
-      </div>
+  <div class="hero-glow hero-glow-one"></div>
+  <div class="hero-glow hero-glow-two"></div>
+
+  <div class="poetry-hero-content">
+
+    <div class="hero-kicker">
+      <span>✦</span>
+      A QUIET SANCTUARY FOR WORDS
+      <span>✦</span>
     </div>
 
-    <div class="hero-visual">
-      <div class="portrait-card tilt-card">
-        <div class="portrait-frame">
-          <img src="/static/img/IMG-20260711-WA0262.jpg" alt="Profile portrait" onerror="this.onerror=null;this.src='/static/img/profile-portrait.svg';">
-        </div>
-        <div class="portrait-meta">
-          <span>The Poet</span>
-          <strong>Dharani</strong>
-        </div>
-      </div>
-    </div>
-  </section>
+    <h1>
+      MOONLIT<br>
+      <span>MARGINALIA</span>
+    </h1>
 
-  {% if featured_poem %}
-    <section class="featured-poem-section">
-      <div class="section-heading">
-        <p class="eyebrow">⭐ Featured</p>
-        <h2>This Week's Featured Poem</h2>
-      </div>
-      <div class="featured-poem-card">
-        {% if featured_poem.cover_image %}
-          <div class="featured-poem-image">
-            <img src="{{ featured_poem.cover_image }}" alt="{{ featured_poem.title }}">
-          </div>
-        {% endif %}
-        <div class="featured-poem-content">
-          <h3>{{ featured_poem.title }}</h3>
-          {% if featured_poem.category_id %}
-            {% set category = featured_poem.category %}
-            <span class="poem-category">{{ category.name if category else 'Uncategorized' }}</span>
-          {% endif %}
-          <p class="featured-poem-excerpt">{{ featured_poem.description or featured_poem.body[:200] }}{% if featured_poem.body|length > 200 %}...{% endif %}</p>
-          <a href="/poem/{{ featured_poem.id }}" class="btn btn-primary">READ THE FULL POEM</a>
-        </div>
-      </div>
-    </section>
-  {% endif %}
+    <p class="hero-poetry-line">
+      “A quiet home for every poem<br>
+      I could never say aloud.”
+    </p>
 
-  <section class="latest-verses-section">
-    <div class="section-heading">
-      <p class="eyebrow">Recently Added</p>
-      <h2>LATEST VERSES</h2>
+    <div class="hero-divider">
+      <span></span>
+      ✦
+      <span></span>
     </div>
 
-    <div class="poem-grid">
-      {% if poems %}
-        {% for p in poems %}
-          <article class="poem-card tilt-card">
-            {% if p.id in recent_poem_ids %}
-              <span class="pill new-pill">New</span>
-            {% else %}
-              <span class="pill">Poem</span>
-            {% endif %}
-            {% if p.cover_image %}
-              <div class="poem-card-image">
-                <img src="{{ p.cover_image }}" alt="{{ p.title }}">
-              </div>
-            {% endif %}
-            <h3>{{ p.title }}</h3>
-            {% if p.category_id %}
-              {% set category = p.category %}
-              <span class="poem-category">{{ category.name if category else 'Uncategorized' }}</span>
-            {% endif %}
-            <p>{{ p.description or p.body[:120] }}{% if p.body|length > 120 %}...{% endif %}</p>
-            <a href="/poem/{{ p.id }}" class="poem-card-link">Read Poem →</a>
-          </article>
-        {% endfor %}
-      {% else %}
-        <article class="poem-card tilt-card">
-          <span class="pill">Poem</span>
-          <h3>Moonlit Silence</h3>
-          <p>The evening remembers your breath in soft silver light.</p>
-        </article>
-        <article class="poem-card tilt-card">
-          <span class="pill">Poem</span>
-          <h3>Lanterns in Rain</h3>
-          <p>Every drop carries a small story home to the heart.</p>
-        </article>
-        <article class="poem-card tilt-card">
-          <span class="pill">Poem</span>
-          <h3>Echoes of Dawn</h3>
-          <p>The sky opens like a page, waiting for a new beginning.</p>
-        </article>
+    <p class="hero-description">
+      Words written between the lines,<br>
+      feelings tucked inside verses,<br>
+      and stories waiting to be read.
+    </p>
+
+    <div class="hero-actions poetry-actions">
+      <a class="poetry-btn poetry-btn-primary" href="/poems">
+        <span>✦</span>
+        ENTER THE POETRY LIBRARY
+      </a>
+
+      {% if featured_poem %}
+      <a class="poetry-btn poetry-btn-outline"
+         href="/poem/{{ featured_poem.id }}">
+        READ THE FEATURED POEM →
+      </a>
       {% endif %}
     </div>
 
-    <div class="view-all-link">
-      <a href="/poems" class="btn btn-secondary">View All Poems →</a>
+  </div>
+
+  <!-- Decorative poetry book -->
+  <div class="hero-book-area">
+    <div class="floating-star star-one">✦</div>
+    <div class="floating-star star-two">✧</div>
+    <div class="floating-star star-three">·</div>
+
+    <div class="poetry-book">
+
+      <div class="book-glow"></div>
+
+      <div class="book-cover">
+        <div class="book-border">
+
+          <span class="book-small">A COLLECTION OF</span>
+
+          <h2>
+            MOONLIT<br>
+            MARGINALIA
+          </h2>
+
+          <div class="book-symbol">✦</div>
+
+          <span class="book-small">
+            POEMS • THOUGHTS • ECHOES
+          </span>
+
+        </div>
+      </div>
+
+      <div class="book-pages"></div>
+
     </div>
-  </section>
 
-  {% if categories %}
-    <section class="my-collection-section">
-      <div class="section-heading">
-        <p class="eyebrow">Explore</p>
-        <h2>MY COLLECTION</h2>
-      </div>
+    <p class="book-caption">
+      <span>“</span>
+      Some feelings become poetry
+      <span>”</span>
+    </p>
+  </div>
 
-      <div class="categories-grid">
-        {% for category in categories %}
-          <a href="/poems?category={{ category.id }}" class="category-card">
-            <h4>{{ category.name.upper() }}</h4>
-            <span class="category-icon">📖</span>
-          </a>
-        {% endfor %}
-      </div>
-    </section>
-  {% endif %}
+</section>
 
-  <section class="feature-section suggestion-panel">
-    <div class="dual-panel-grid">
-      <div class="panel-card suggestion-box-card">
-        <div class="panel-visual suggestion-art" aria-hidden="true"></div>
-        <div class="scene-header">
-          <h2>SUGGESTIONS</h2>
-        </div>
 
-        <div class="story-card-scene mailbox-scene">
-          <div class="mailbox-frame">
-            <div class="mailbox-slot"></div>
-            <div class="mailbox-robot">
-              <div class="robot-head">
-                <span class="robot-eye"></span>
-                <span class="robot-eye"></span>
-              </div>
-              <div class="robot-body"></div>
-              <div class="robot-arm"></div>
-            </div>
-            <div class="mail-scroll">
-              <div class="scroll-paper"></div>
-            </div>
-          </div>
-        </div>
+<!-- ================= STATS ================= -->
+<section class="poetry-stats-section">
 
-        <div class="suggestion-copy">
-          <p>Share your ideas, feedback, and inspiration for new poems.</p>
-          <a class="btn btn-secondary" href="/suggestions">Share a Note</a>
-        </div>
-      </div>
+  <div class="poetry-stat">
+    <span class="stat-symbol">✦</span>
+    <strong>{{ total_poems }}</strong>
+    <small>POEMS</small>
+  </div>
 
-      <div class="panel-card companion-panel">
-        <div class="panel-visual companion-art" aria-hidden="true"></div>
-        <div class="scene-header alt-header">
-          <h2>AI COMPANION</h2>
-        </div>
+  <div class="stat-line"></div>
 
-        <div class="story-card-scene ghost-scene">
-          <div class="ghost-character">
-            <div class="ghost-head"></div>
-            <div class="ghost-orbit orbit-one"></div>
-            <div class="ghost-orbit orbit-two"></div>
-            <div class="ghost-orbit orbit-three"></div>
-          </div>
-          <div class="reading-chair">
-            <div class="chair-seat"></div>
-            <div class="chair-back"></div>
-            <div class="chair-book"></div>
-          </div>
-        </div>
+  <div class="poetry-stat">
+    <span class="stat-symbol">◈</span>
+    <strong>{{ total_categories }}</strong>
+    <small>COLLECTIONS</small>
+  </div>
 
-        <div class="suggestion-copy">
-          <p>A warm, thoughtful companion for late-night reflections and poetry requests.</p>
-          <a class="btn btn-primary" href="/chat">Talk to the Companion</a>
-        </div>
-      </div>
+  <div class="stat-line"></div>
+
+  <div class="poetry-stat">
+    <span class="stat-symbol">♡</span>
+    <strong>{{ total_favorites }}</strong>
+    <small>FAVORITES</small>
+  </div>
+
+</section>
+
+
+<!-- ================= FEATURED POEM ================= -->
+{% if featured_poem %}
+<section class="home-featured-poem">
+
+  <div class="poetry-section-heading">
+    <span class="heading-symbol">✦</span>
+    <p>THE POEM OF THE MOMENT</p>
+    <h2>Featured Verse</h2>
+  </div>
+
+  <div class="featured-poetry-card">
+
+    <div class="featured-side-mark">
+      <span>01</span>
     </div>
-  </section>
+
+    <div class="featured-poetry-content">
+
+      <span class="featured-label">✦ FEATURED</span>
+
+      <h3>{{ featured_poem.title }}</h3>
+
+      {% if featured_poem.description %}
+      <p class="featured-description">
+        {{ featured_poem.description }}
+      </p>
+      {% else %}
+      <p class="featured-description">
+        {{ featured_poem.body[:260] }}
+        {% if featured_poem.body|length > 260 %}...{% endif %}
+      </p>
+      {% endif %}
+
+      <a href="/poem/{{ featured_poem.id }}"
+         class="read-poetry-link">
+        READ THIS POEM
+        <span>→</span>
+      </a>
+
+    </div>
+
+    <div class="featured-quote-mark">“</div>
+
+  </div>
+
+</section>
+{% endif %}
+
+
+<!-- ================= LATEST POEMS ================= -->
+<section class="latest-poetry-section">
+
+  <div class="poetry-section-heading">
+    <span class="heading-symbol">✧</span>
+    <p>FROM THE MARGINS</p>
+    <h2>Latest Verses</h2>
+    <span class="heading-description">
+      Recently written, recently remembered.
+    </span>
+  </div>
+
+  <div class="poetry-home-grid">
+
+    {% if poems %}
+
+      {% for p in poems %}
+
+      <article class="home-poem-card">
+
+        <div class="home-poem-number">
+          {{ "%02d"|format(loop.index) }}
+        </div>
+
+        {% if p.id in recent_poem_ids %}
+          <span class="home-new-label">NEW</span>
+        {% endif %}
+
+        <div class="home-poem-symbol">✦</div>
+
+        <h3>{{ p.title }}</h3>
+
+        <div class="mini-divider"></div>
+
+        <p>
+          {{ p.description or p.body[:145] }}
+          {% if p.body|length > 145 %}...{% endif %}
+        </p>
+
+        <a href="/poem/{{ p.id }}">
+          READ POEM <span>→</span>
+        </a>
+
+      </article>
+
+      {% endfor %}
+
+    {% else %}
+
+      <article class="home-poem-card">
+        <div class="home-poem-symbol">✦</div>
+        <h3>Moonlit Silence</h3>
+        <div class="mini-divider"></div>
+        <p>The evening remembers your breath in soft silver light.</p>
+      </article>
+
+      <article class="home-poem-card">
+        <div class="home-poem-symbol">✧</div>
+        <h3>Lanterns in Rain</h3>
+        <div class="mini-divider"></div>
+        <p>Every drop carries a small story home to the heart.</p>
+      </article>
+
+      <article class="home-poem-card">
+        <div class="home-poem-symbol">◇</div>
+        <h3>Echoes of Dawn</h3>
+        <div class="mini-divider"></div>
+        <p>The sky opens like a page, waiting for a new beginning.</p>
+      </article>
+
+    {% endif %}
+
+  </div>
+
+  <div class="home-library-button">
+    <a href="/poems" class="poetry-btn poetry-btn-outline">
+      EXPLORE THE COMPLETE COLLECTION →
+    </a>
+  </div>
+
+</section>
+
+
+<!-- ================= COLLECTIONS ================= -->
+{% if categories %}
+<section class="home-collections">
+
+  <div class="poetry-section-heading">
+    <span class="heading-symbol">◈</span>
+    <p>EXPLORE BY FEELING</p>
+    <h2>My Collections</h2>
+  </div>
+
+  <div class="home-category-grid">
+
+    {% for category in categories %}
+
+    <a href="/poems?category={{ category.id }}"
+       class="home-category-card">
+
+      <span class="category-number">
+        {{ "%02d"|format(loop.index) }}
+      </span>
+
+      <span class="category-star">✦</span>
+
+      <h3>{{ category.name }}</h3>
+
+      <span class="category-enter">
+        EXPLORE →
+      </span>
+
+    </a>
+
+    {% endfor %}
+
+  </div>
+
+</section>
+{% endif %}
+
+
+<!-- ================= FINAL CTA ================= -->
+<section class="poetry-final-cta">
+
+  <div class="cta-stars">✦　✧　✦</div>
+
+  <p class="eyebrow">WHEN WORDS ARE NOT ENOUGH</p>
+
+  <h2>
+    Sometimes a poem<br>
+    understands us first.
+  </h2>
+
+  <p>
+    Read something that feels like you.
+  </p>
+
+  <a href="/poems" class="poetry-btn poetry-btn-primary">
+    ENTER THE MARGINS →
+  </a>
+
+</section>
+
 {% endblock %}
