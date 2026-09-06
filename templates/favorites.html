@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% block title %}My Favorites - Moonlit Marginalia{% endblock %}
+{% block content %}
+  <section class="library-section">
+    <div class="section-heading">
+      <p class="eyebrow">Your Collection</p>
+      <h1>MY FAVORITES</h1>
+      <p class="section-subtitle">Poems that moved your heart.</p>
+    </div>
+
+    {% if poems %}
+      <div class="poem-grid">
+        {% for poem in poems %}
+          <article class="poem-card">
+            {% if poem.cover_image %}
+              <div class="poem-card-image">
+                <img src="{{ poem.cover_image }}" alt="{{ poem.title }}">
+              </div>
+            {% endif %}
+            <div class="poem-card-content">
+              <h3>{{ poem.title }}</h3>
+              {% if poem.category_id %}
+                {% set category = poem.category %}
+                <span class="poem-category">{{ category.name if category else 'Uncategorized' }}</span>
+              {% endif %}
+              <p class="poem-excerpt">{{ poem.description or poem.body[:120] }}{% if poem.body|length > 120 %}...{% endif %}</p>
+              <div class="poem-card-meta">
+                <span class="poem-date">{{ poem.created_at.strftime('%b %d, %Y') if poem.created_at else 'Date unknown' }}</span>
+                {% if poem.tags %}
+                  <span class="poem-tags-inline">
+                    {% for tag in poem.get_tags_list()[:2] %}
+                      #{{ tag }}{% if not loop.last %} {% endif %}
+                    {% endfor %}
+                  </span>
+                {% endif %}
+              </div>
+              <a href="/poem/{{ poem.id }}" class="poem-card-link">Read Poem →</a>
+            </div>
+          </article>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty-state">
+        <p class="empty-state-icon">📚</p>
+        <h2>Your favorite verses will live here.</h2>
+        <p>Mark poems as favorites while reading to create your personal collection.</p>
+        <a href="/poems" class="btn btn-primary">Explore Poems</a>
+      </div>
+    {% endif %}
+  </section>
+{% endblock %}
