@@ -1,21 +1,173 @@
 {% extends 'base.html' %}
+
 {% block content %}
-  <div class="page-shell">
-    <div class="auth-card">
-      <p class="eyebrow center">Welcome back</p>
-      <h2>Login</h2>
-      <form method="post" class="stack-form">
-        <label>
-          <span>Username or Email</span>
-          <input name="username" required>
-        </label>
-        <label>
-          <span>Password</span>
-          <input name="password" type="password" required>
-        </label>
-        <button type="submit">Login</button>
-      </form>
-      <p class="switch-link">New here? <a href="/signup">Create an account</a></p>
+
+<section class="auth-page">
+
+    <div class="auth-orb auth-orb-one"></div>
+    <div class="auth-orb auth-orb-two"></div>
+
+    <div class="auth-layout">
+
+        <!-- LEFT -->
+        <div class="auth-intro">
+
+            <div class="auth-moon">
+                ☾
+            </div>
+
+            <div class="auth-stars">
+                <span>✦</span>
+                <span>✧</span>
+                <span>·</span>
+                <span>✦</span>
+            </div>
+
+            <p class="auth-kicker">
+                ✦ WELCOME TO THE MARGINS ✦
+            </p>
+
+            <h1>
+                Welcome<br>
+                <span>back.</span>
+            </h1>
+
+            <div class="auth-divider">
+                <span></span>
+                ✦
+                <span></span>
+            </div>
+
+            <p class="auth-quote">
+                “Somewhere between<br>
+                silence and words,<br>
+                you left a piece of yourself.”
+            </p>
+
+            <p class="auth-description">
+                Return to your little corner of
+                poems, feelings and unfinished thoughts.
+            </p>
+
+        </div>
+
+
+        <!-- RIGHT -->
+        <div class="auth-card premium-auth-card">
+
+            <div class="auth-card-symbol">
+                ✦
+            </div>
+
+            <p class="eyebrow center">
+                YOUR POETRY SPACE
+            </p>
+
+            <h2>
+                Sign in
+            </h2>
+
+            <p class="auth-card-subtitle">
+                Continue where your words left off.
+            </p>
+
+
+            <form method="post" class="stack-form premium-auth-form">
+
+                <!-- USERNAME / EMAIL -->
+
+                <label>
+
+                    <span>
+                        USERNAME OR EMAIL
+                    </span>
+
+                    <div class="auth-input-wrap">
+
+                        <span class="input-icon">
+                            ◇
+                        </span>
+
+                        <input
+                            name="username"
+                            type="text"
+                            autocomplete="username"
+                            placeholder="Enter your username or email"
+                            required
+                        >
+
+                    </div>
+
+                </label>
+
+
+                <!-- PASSWORD -->
+
+                <label>
+
+                    <span>
+                        PASSWORD
+                    </span>
+
+                    <div class="auth-input-wrap">
+
+                        <span class="input-icon">
+                            ◈
+                        </span>
+
+                        <input
+                            name="password"
+                            type="password"
+                            autocomplete="current-password"
+                            placeholder="Enter your password"
+                            required
+                        >
+
+                    </div>
+
+                </label>
+
+
+                <!-- LOGIN -->
+
+                <button
+                    type="submit"
+                    class="auth-submit-btn"
+                >
+                    <span>✦</span>
+                    ENTER MOONLIT MARGINALIA
+                    <strong>→</strong>
+                </button>
+
+            </form>
+
+
+            <div class="auth-bottom-line">
+                <span></span>
+                ✧
+                <span></span>
+            </div>
+
+
+            <p class="switch-link auth-switch">
+
+                New to the collection?
+
+                <a href="/signup">
+                    Create an account →
+                </a>
+
+            </p>
+
+
+            <p class="auth-note">
+                ✦ A quiet place for every thought.
+            </p>
+
+        </div>
+
     </div>
-  </div>
+
+</section>
+
 {% endblock %}
