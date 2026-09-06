@@ -1,23 +1,125 @@
 {% extends 'base.html' %}
+
 {% block content %}
-  <section class="page-shell">
-    <div class="auth-card wide-card">
-      <div class="card-header center">
-        <p class="eyebrow">Suggestion box</p>
-        <h2>Leave a note in the margins</h2>
+
+<section class="suggestion-page">
+
+  <div class="suggestion-bg-symbol symbol-one">✦</div>
+  <div class="suggestion-bg-symbol symbol-two">✧</div>
+  <div class="suggestion-bg-symbol symbol-three">·</div>
+
+
+  <div class="suggestion-layout">
+
+    <!-- ================= LEFT ================= -->
+    <div class="suggestion-intro">
+
+      <div class="suggestion-envelope">
+
+        <div class="envelope-glow"></div>
+
+        <div class="envelope">
+          <div class="envelope-flap"></div>
+          <div class="envelope-paper">
+            <span>✦</span>
+          </div>
+        </div>
+
       </div>
 
-      <div class="suggestion-portrait-wrap large-suggestion-portrait">
-        <img class="suggestion-portrait" src="/static/img/IMG-20260711-WA0262.jpg" alt="Suggestion box portrait" onerror="this.onerror=null;this.src='/static/img/profile-portrait.svg';">
+      <p class="eyebrow">
+        A NOTE IN THE MARGINS
+      </p>
+
+      <h1>
+        Leave a<br>
+        <span>little note.</span>
+      </h1>
+
+      <div class="suggestion-divider">
+        <span></span>
+        ✦
+        <span></span>
       </div>
 
-      <form method="post" class="stack-form chat-form">
-        <label>
-          <span>Your thought</span>
-          <textarea name="message" rows="6" placeholder="A line, a feeling, a memory, a tiny confession..."></textarea>
-        </label>
-        <button type="submit">Send suggestion</button>
-      </form>
+      <p>
+        Every thought matters here —
+        an idea, a feeling, a memory,
+        or simply a line that stayed with you.
+      </p>
+
+      <blockquote>
+        “Words become more beautiful
+        when they are shared.”
+      </blockquote>
+
     </div>
-  </section>
+
+
+    <!-- ================= FORM ================= -->
+    <div class="suggestion-card">
+
+      <div class="suggestion-card-top">
+
+        <div>
+          <span class="suggestion-label">
+            MARGINAL NOTE
+          </span>
+
+          <h2>
+            What would you like to say?
+          </h2>
+        </div>
+
+        <span class="suggestion-card-star">
+          ✦
+        </span>
+
+      </div>
+
+
+      <form method="post"
+            class="suggestion-form">
+
+        <label for="suggestion-message">
+          <span>YOUR THOUGHT</span>
+        </label>
+
+        <div class="suggestion-textarea-wrap">
+
+          <span class="textarea-symbol">“</span>
+
+          <textarea
+            id="suggestion-message"
+            name="message"
+            rows="9"
+            placeholder="Write a line, a feeling, an idea, a memory..."
+            required></textarea>
+
+          <span class="textarea-end-symbol">”</span>
+
+        </div>
+
+        <div class="suggestion-form-footer">
+
+          <small>
+            ✦ No thought is too small.
+          </small>
+
+          <button type="submit"
+                  class="poetry-btn poetry-btn-primary">
+            SEND MY NOTE
+            <span>→</span>
+          </button>
+
+        </div>
+
+      </form>
+
+    </div>
+
+  </div>
+
+</section>
+
 {% endblock %}
