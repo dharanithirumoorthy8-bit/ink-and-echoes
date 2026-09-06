@@ -2,338 +2,79 @@
 
 {% block content %}
 
-<section class="admin-page">
+<section class="auth-shell">
 
-    <!-- ==============================
-         ADMIN HEADER
-         ============================== -->
+    <div class="auth-card admin-card">
 
-    <div class="admin-welcome">
-        <div>
-            <p class="eyebrow">✦ YOUR WRITING DESK</p>
-            <h1>Admin Dashboard</h1>
-            <p class="admin-subtitle">
-                Shape the collection, one poem at a time.
-            </p>
-        </div>
+        <p class="eyebrow">Your writing desk</p>
 
-        <div class="admin-symbol">
-            ✦
-        </div>
-    </div>
+        <h2>Admin Dashboard</h2>
 
-
-    <!-- ==============================
-         ADD POEM
-         ============================== -->
-
-    <section class="admin-add-card">
-
-        <div class="admin-section-title">
-            <div>
-                <span class="admin-mini-label">
-                    NEW ENTRY
-                </span>
-
-                <h2>Add a poem</h2>
-
-                <p>
-                    Give your latest thoughts a place in the collection.
-                </p>
-            </div>
-
-            <span class="admin-section-star">✧</span>
-        </div>
-
+        <p style="color:#aaa; margin-bottom:25px;">
+            Logged in as administrator.
+        </p>
 
         <form
             method="post"
             action="/admin/poem/new"
             enctype="multipart/form-data"
-            class="admin-poem-form"
+            class="stack-form"
         >
 
-            <!-- TITLE -->
+            <label>
+                <span>Title</span>
+                <input
+                    name="title"
+                    placeholder="Moonlit Silence"
+                    required
+                >
+            </label>
 
-            <div class="admin-form-row">
+            <label>
+                <span>Category</span>
+                <input
+                    name="category"
+                    placeholder="Love, grief, memory..."
+                >
+            </label>
 
-                <label class="admin-field">
-
-                    <span>POEM TITLE</span>
-
-                    <input
-                        name="title"
-                        type="text"
-                        placeholder="Moonlit Silence"
-                        required
-                    >
-
-                </label>
-
-
-                <!-- CATEGORY -->
-
-                <label class="admin-field">
-
-                    <span>CATEGORY</span>
-
-                    <input
-                        name="category"
-                        type="text"
-                        placeholder="Love, grief, memory..."
-                    >
-
-                </label>
-
-            </div>
-
-
-            <!-- POEM -->
-
-            <label class="admin-field">
-
-                <span>POEM TEXT</span>
-
+            <label>
+                <span>Poem text</span>
                 <textarea
                     name="body"
                     rows="10"
                     placeholder="Paste your poem here..."
                     required
                 ></textarea>
-
             </label>
 
-
-            <!-- IMAGE -->
-
-            <label class="admin-field">
-
-                <span>PROFILE IMAGE</span>
-
-                <div class="admin-file-box">
-
-                    <span class="admin-file-icon">
-                        ◇
-                    </span>
-
-                    <div>
-                        <strong>
-                            Choose an image
-                        </strong>
-
-                        <small>
-                            Optional · JPG, PNG, WEBP
-                        </small>
-                    </div>
-
-                    <input
-                        type="file"
-                        name="profile_image"
-                        accept="image/*"
-                    >
-
-                </div>
-
-            </label>
-
-
-            <!-- SUBMIT -->
-
-            <div class="admin-form-bottom">
-
-                <p>
-                    ✦ Your poem will become part of the collection.
-                </p>
-
-                <button
-                    type="submit"
-                    class="admin-publish-btn"
+            <label>
+                <span>Profile image</span>
+                <input
+                    type="file"
+                    name="profile_image"
+                    accept="image/*"
                 >
-                    <span>✦</span>
-                    PUBLISH POEM
-                    <strong>→</strong>
-                </button>
+            </label>
 
-            </div>
+            <button type="submit">
+                Publish poem
+            </button>
 
         </form>
 
-
-        <p
-            id="offline-sync-notice"
-            class="muted"
-        ></p>
-
-    </section>
-
-
-    <!-- VIEWERS -->
-
-    <div class="admin-viewers-link">
-
-        <a href="/admin/viewers">
-            <span>◉</span>
-            Viewers & Tokens
-            <strong>→</strong>
-        </a>
+        <p id="offline-sync-notice" class="muted"></p>
 
     </div>
 
+</section>
 
-    <!-- ==============================
-         SAVED POEMS
-         ============================== -->
+<div style="max-width:1000px; margin:20px auto;">
+    <a href="/admin/viewers">
+        Viewers & Tokens →
+    </a>
+</div>
 
-    <section class="admin-section">
+<script src="/static/js/admin_offline.js"></script>
 
-        <div class="admin-section-heading">
-
-            <div>
-
-                <span class="admin-mini-label">
-                    SAVED POEMS
-                </span>
-
-                <h2>Latest entries</h2>
-
-            </div>
-
-            <span class="admin-heading-symbol">
-                ✦
-            </span>
-
-        </div>
-
-
-        <div class="admin-poem-grid">
-
-            {% for p in poems %}
-
-            <article class="admin-poem-card">
-
-                <div class="admin-poem-top">
-
-                    <span class="admin-poem-pill">
-                        POEM
-                    </span>
-
-                    {% if p.is_featured %}
-                    <span class="admin-featured-pill">
-                        FEATURED
-                    </span>
-                    {% endif %}
-
-                </div>
-
-
-                <h3>
-                    {{ p.title }}
-                </h3>
-
-
-                <p class="admin-poem-preview">
-
-                    {{ p.body[:180] }}
-
-                    {% if p.body|length > 180 %}
-                        ...
-                    {% endif %}
-
-                </p>
-
-
-                <div class="admin-poem-footer">
-
-                    <span>
-                        ✦ Saved entry
-                    </span>
-
-
-                    <form
-                        method="post"
-                        action="{{ url_for('admin.admin_delete_poem', poem_id=p.id) }}"
-                        onsubmit="return confirm('Delete this poem?');"
-                    >
-
-                        <button
-                            type="submit"
-                            class="admin-delete-btn"
-                        >
-                            Delete
-                        </button>
-
-                    </form>
-
-                </div>
-
-            </article>
-
-            {% else %}
-
-            <article class="admin-empty-card">
-
-                <span>✧</span>
-
-                <h3>No poems yet</h3>
-
-                <p>
-                    Paste your first poem above and
-                    it will appear here.
-                </p>
-
-            </article>
-
-            {% endfor %}
-
-        </div>
-
-    </section>
-
-
-    <!-- ==============================
-         COMMUNITY
-         ============================== -->
-
-    <section class="admin-section community-section">
-
-        <div class="admin-section-heading">
-
-            <div>
-
-                <span class="admin-mini-label">
-                    COMMUNITY
-                </span>
-
-                <h2>Suggestions & Users</h2>
-
-            </div>
-
-            <span class="admin-heading-symbol">
-                ♡
-            </span>
-
-        </div>
-
-
-        <div class="admin-community-grid">
-
-
-            <!-- SUGGESTIONS -->
-
-            <div class="admin-community-card">
-
-                <div class="community-card-heading">
-
-                    <div>
-                        <span>✦</span>
-                        <h3>Suggestions</h3>
-                    </div>
-
-                    <small>
-                        {{ suggestions|length }}
-                    </small>
-
-                </div>
-
-
-                <div class="admin-s
+{% endblock %}
