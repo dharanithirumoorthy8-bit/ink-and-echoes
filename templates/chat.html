@@ -1,54 +1,177 @@
 {% extends 'base.html' %}
+
 {% block content %}
-  <section class="page-shell chat-shell">
-    <div class="chat-layout">
-      <aside class="companion-rail">
-        <div class="companion-illustration large-photo">
-          <div class="ghost-character ghost-chat-figure">
-            <div class="ghost-head"></div>
-            <div class="ghost-orbit orbit-one"></div>
-            <div class="ghost-orbit orbit-two"></div>
-            <div class="ghost-orbit orbit-three"></div>
-          </div>
-          <div class="reading-chair compact-chair">
-            <div class="chair-seat"></div>
-            <div class="chair-back"></div>
-            <div class="chair-book"></div>
-          </div>
-        </div>
-        <div class="companion-caption">
-          <p class="eyebrow">Companion</p>
-          <h3>Moonlit friend</h3>
-          <p>Soft, reflective, and ready to listen in English, Tamil, or Hindi.</p>
-        </div>
-      </aside>
 
-      <div class="auth-card wide-card">
-        <div class="card-header center">
-          <p class="eyebrow">Poetry companion</p>
-          <h2>Chat with your inner voice</h2>
+<section class="companion-page">
+
+  <div class="companion-background-orb orb-a"></div>
+  <div class="companion-background-orb orb-b"></div>
+
+  <div class="companion-layout">
+
+    <!-- ================= LEFT INTRO ================= -->
+    <aside class="companion-intro">
+
+      <div class="companion-avatar">
+
+        <div class="companion-halo"></div>
+
+        <div class="companion-moon">☾</div>
+
+        <div class="companion-stars">
+          <span>✦</span>
+          <span>✧</span>
+          <span>·</span>
+          <span>✦</span>
         </div>
 
-        <div class="prompt-pills" aria-label="Quick prompts">
-          <button type="button" class="prompt-btn" data-prompt="I feel lonely">I feel lonely</button>
-          <button type="button" class="prompt-btn" data-prompt="நான் மனசு சோர்ந்துவிட்டது">தமிழ்</button>
-          <button type="button" class="prompt-btn" data-prompt="main dukhi hoon">हिंदी</button>
-        </div>
-
-        <div id="chatbox" class="chatbox" aria-live="polite"></div>
-
-        <form id="chat-form" class="stack-form chat-form">
-          <label>
-            <span>Your thought</span>
-            <input id="msg" autocomplete="off" placeholder="Tell me what you feel...">
-          </label>
-          <button type="submit">Send</button>
-        </form>
       </div>
+
+      <span class="companion-kicker">
+        YOUR POETRY COMPANION
+      </span>
+
+      <h1>
+        Moonlit<br>
+        <span>Companion</span>
+      </h1>
+
+      <div class="companion-line"></div>
+
+      <p>
+        A quiet space for thoughts that are
+        difficult to put into words.
+      </p>
+
+      <div class="companion-features">
+
+        <div>
+          <span>✦</span>
+          <p>Talk freely</p>
+        </div>
+
+        <div>
+          <span>♡</span>
+          <p>Reflect gently</p>
+        </div>
+
+        <div>
+          <span>✧</span>
+          <p>Create poetry</p>
+        </div>
+
+      </div>
+
+      <div class="language-note">
+        <span>LANGUAGES</span>
+        <strong>English · தமிழ் · हिंदी</strong>
+      </div>
+
+    </aside>
+
+
+    <!-- ================= CHAT ================= -->
+    <div class="companion-chat-card">
+
+      <div class="companion-chat-header">
+
+        <div class="chat-status">
+          <span class="status-dot"></span>
+          <span>COMPANION ONLINE</span>
+        </div>
+
+        <div class="chat-header-symbol">
+          ✦
+        </div>
+
+      </div>
+
+
+      <div class="chat-welcome">
+
+        <span class="welcome-symbol">☾</span>
+
+        <h2>
+          Tell me what's on your mind.
+        </h2>
+
+        <p>
+          There is no perfect way to say it.
+          Just begin.
+        </p>
+
+      </div>
+
+
+      <div class="prompt-pills" aria-label="Quick prompts">
+
+        <button
+          type="button"
+          class="prompt-btn"
+          data-prompt="I feel lonely">
+          I feel lonely
+        </button>
+
+        <button
+          type="button"
+          class="prompt-btn"
+          data-prompt="நான் மனசு சோர்ந்துவிட்டது">
+          தமிழ்
+        </button>
+
+        <button
+          type="button"
+          class="prompt-btn"
+          data-prompt="main dukhi hoon">
+          हिंदी
+        </button>
+
+      </div>
+
+
+      <div id="chatbox"
+           class="chatbox companion-chatbox"
+           aria-live="polite">
+      </div>
+
+
+      <form id="chat-form"
+            class="companion-chat-form">
+
+        <label for="msg">
+          <span>YOUR THOUGHT</span>
+        </label>
+
+        <div class="chat-input-row">
+
+          <input
+            id="msg"
+            autocomplete="off"
+            placeholder="Write what you cannot say aloud..."
+          >
+
+          <button type="submit">
+            <span>SEND</span>
+            <strong>→</strong>
+          </button>
+
+        </div>
+
+        <small>
+          ✦ Your thoughts can become poetry.
+        </small>
+
+      </form>
+
     </div>
-  </section>
+
+  </div>
+
+</section>
+
 {% endblock %}
 
+
 {% block scripts %}
-  <script src="/static/js/chat.js"></script>
+<script src="/static/js/chat.js"></script>
 {% endblock %}
