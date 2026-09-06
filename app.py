@@ -1,10 +1,6 @@
 import os
+from datetime import datetime
 import click
-import base64
-import secrets
-import shutil
-
-from datetime import datetime, timedelta
 
 from flask import (
     Flask,
@@ -13,37 +9,33 @@ from flask import (
     url_for,
     request,
     flash,
-    jsonify
+    jsonify,
 )
 
 from werkzeug.security import (
     check_password_hash,
-    generate_password_hash
+    generate_password_hash,
 )
 
 from flask_login import (
     LoginManager,
     login_required,
-    current_user
+    current_user,
 )
 
 from models import db
 
 
-# ============================================================
-# APPLICATION FACTORY
-# ============================================================
-
 def create_app():
+
+    # =========================================================
+    # FLASK APP
+    # =========================================================
 
     app = Flask(
         __name__,
         instance_relative_config=True
     )
-
-    # ========================================================
-    # INSTANCE FOLDER
-    # ========================================================
 
     try:
         os.makedirs(
@@ -54,16 +46,18 @@ def create_app():
         pass
 
 
-    # ========================================================
+    # =========================================================
     # SECRET KEY
-    # ========================================================
+    # =========================================================
 
     secret_file = os.path.join(
         app.instance_path,
         "secret_key"
     )
 
-    secret_key = os.environ.get("SECRET_KEY")
+    secret_key = os.environ.get(
+        "SECRET_KEY"
+    )
 
     if not secret_key:
 
@@ -76,15 +70,17 @@ def create_app():
                     "rb"
                 ) as fh:
 
-                    secret_key = fh.read().decode(
-                        "utf-8"
+                    secret_key = (
+                        fh.read()
+                        .decode("utf-8")
                     )
 
             else:
 
-                secret_key = os.urandom(
-                    24
-                ).hex()
+                secret_key = (
+                    os.urandom(24)
+                    .hex()
+                )
 
                 with open(
                     secret_file,
@@ -92,7 +88,9 @@ def create_app():
                 ) as fh:
 
                     fh.write(
-                        secret_key.encode("utf-8")
+                        secret_key.encode(
+                            "utf-8"
+                        )
                     )
 
         except Exception:
@@ -102,25 +100,24 @@ def create_app():
 
     app.config["SECRET_KEY"] = secret_key
 
-
-    # ========================================================
-    # ADMIN CONFIGURATION
-    # ========================================================
-
-    app.config["ADMIN_USERNAME"] = os.environ.get(
-        "ADMIN_USERNAME",
-        "admin"
+    app.config["ADMIN_USERNAME"] = (
+        os.environ.get(
+            "ADMIN_USERNAME",
+            "admin"
+        )
     )
 
-    app.config["ADMIN_PASSWORD"] = os.environ.get(
-        "ADMIN_PASSWORD",
-        "admin123"
+    app.config["ADMIN_PASSWORD"] = (
+        os.environ.get(
+            "ADMIN_PASSWORD",
+            "admin123"
+        )
     )
 
 
-    # ========================================================
-    # DATABASE CONFIGURATION
-    # ========================================================
+    # =========================================================
+    # DATABASE
+    # =========================================================
 
     database_url = os.environ.get(
         "DATABASE_URL"
@@ -135,27 +132,36 @@ def create_app():
 
         database_url = (
             "sqlite:///"
-            + os.path.abspath(db_path).replace(
-                "\\",
-                "/"
+            + os.path.abspath(db_path)
+            .replace("\\", "/")
+        )
+
+
+    app.config[
+        "SQLALCHEMY_DATABASE_URI"
+    ] = database_url
+
+
+    if app.config[
+        "SQLALCHEMY_DATABASE_URI"
+    ].startswith("postgres"):
+
+        app.config[
+            "SQLALCHEMY_DATABASE_URI"
+        ] = (
+            app.config[
+                "SQLALCHEMY_DATABASE_URI"
+            ].replace(
+                "postgres://",
+                "postgresql://",
+                1
             )
         )
 
 
-    # Render/PostgreSQL compatibility
-
-    if database_url.startswith("postgres://"):
-
-        database_url = database_url.replace(
-            "postgres://",
-            "postgresql://",
-            1
-        )
-
-
-    app.config["SQLALCHEMY_DATABASE_URI"] = database_url
-
-    app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+    app.config[
+        "SQLALCHEMY_TRACK_MODIFICATIONS"
+    ] = False
 
     app.config["DEBUG"] = (
         os.environ.get(
@@ -165,31 +171,18 @@ def create_app():
     )
 
 
-    # ========================================================
-    # INITIALIZE DATABASE
-    # ========================================================
-
     db.init_app(app)
 
 
-    # ========================================================
-    # ACTIVE VIEWERS
-    # ========================================================
-
-    import threading
-
-    ACTIVE_VIEWERS = {}
-
-    ACTIVE_VIEWERS_LOCK = threading.Lock()
-
-
-    # ========================================================
+    # =========================================================
     # LOGIN MANAGER
-    # ========================================================
+    # =========================================================
 
     login_manager = LoginManager()
 
-    login_manager.login_view = "auth.login"
+    login_manager.login_view = (
+        "auth.login"
+    )
 
     login_manager.init_app(app)
 
@@ -200,20 +193,14 @@ def create_app():
     @login_manager.user_loader
     def load_user(user_id):
 
-        try:
-
-            return User.query.get(
-                int(user_id)
-            )
-
-        except Exception:
-
-            return None
+        return User.query.get(
+            int(user_id)
+        )
 
 
-    # ========================================================
+    # =========================================================
     # BLUEPRINTS
-    # ========================================================
+    # =========================================================
 
     from auth import auth_bp
 
@@ -236,30 +223,38 @@ def create_app():
     )
 
 
-    # ========================================================
+    # =========================================================
     # GLOBAL SITE STATISTICS
-    # ========================================================
+    #
+    # IMPORTANT:
+    # Each query is independent.
+    # If Favorite table has an old schema,
+    # Login/Register will NOT crash.
+    # =========================================================
 
     @app.context_processor
     def inject_site_stats():
 
         from models import (
-            PageView,
+            User,
             Poem,
             Category,
             Favorite,
-            User
+            PageView,
         )
 
-        # ----------------------------------------------------
+
+        # -------------------------
         # TOTAL POEMS
-        # ----------------------------------------------------
+        # -------------------------
 
         try:
 
             total_poems = (
                 Poem.query
-                .filter_by(published=True)
+                .filter_by(
+                    published=True
+                )
                 .count()
             )
 
@@ -268,39 +263,9 @@ def create_app():
             total_poems = 0
 
 
-        # ----------------------------------------------------
-        # TOTAL CATEGORIES
-        # ----------------------------------------------------
-
-        try:
-
-            total_categories = (
-                Category.query.count()
-            )
-
-        except Exception:
-
-            total_categories = 0
-
-
-        # ----------------------------------------------------
-        # TOTAL FAVORITES
-        # ----------------------------------------------------
-
-        try:
-
-            total_favorites = (
-                Favorite.query.count()
-            )
-
-        except Exception:
-
-            total_favorites = 0
-
-
-        # ----------------------------------------------------
+        # -------------------------
         # REGISTERED USERS
-        # ----------------------------------------------------
+        # -------------------------
 
         try:
 
@@ -313,23 +278,51 @@ def create_app():
             registered_users = 0
 
 
-        # ----------------------------------------------------
-        # TOTAL WEBSITE VIEWS
-        # ----------------------------------------------------
+        # -------------------------
+        # CATEGORIES
+        # -------------------------
+
+        try:
+
+            total_categories = (
+                Category.query.count()
+            )
+
+        except Exception:
+
+            total_categories = 0
+
+
+        # -------------------------
+        # FAVORITES
+        # -------------------------
+
+        try:
+
+            total_favorites = (
+                Favorite.query.count()
+            )
+
+        except Exception:
+
+            total_favorites = 0
+
+
+        # -------------------------
+        # TOTAL VIEWS
+        # -------------------------
 
         try:
 
             total_views = (
-                db.session
-                .query(
+                db.session.query(
                     db.func.coalesce(
                         db.func.sum(
                             PageView.count
                         ),
                         0
                     )
-                )
-                .scalar()
+                ).scalar()
                 or 0
             )
 
@@ -338,81 +331,37 @@ def create_app():
             total_views = 0
 
 
-        # ----------------------------------------------------
-        # CURRENTLY ACTIVE VIEWERS
-        # ----------------------------------------------------
-
-        try:
-
-            cutoff = (
-                datetime.utcnow()
-                - timedelta(seconds=60)
-            )
-
-            active_viewers = (
-                db.session
-                .query(
-                    db.func.count(
-                        db.distinct(
-                            db.column(
-                                "client_id"
-                            )
-                        )
-                    )
-                )
-                .select_from(
-                    db.text(
-                        "active_viewer"
-                    )
-                )
-            )
-
-            # Safer direct query below
-            from models import ActiveViewer
-
-            active_viewers = (
-                ActiveViewer.query
-                .filter(
-                    ActiveViewer.last_seen >= cutoff
-                )
-                .count()
-            )
-
-        except Exception:
-
-            active_viewers = 0
-
-
         return {
 
-            # Existing variable
-            "poems_total_views": total_views,
+            "poems_total_views":
+                total_views,
 
-            # Home statistics
-            "total_views": total_views,
+            "total_poems":
+                total_poems,
 
-            "total_poems": total_poems,
+            "total_categories":
+                total_categories,
 
-            "total_categories": total_categories,
+            "total_favorites":
+                total_favorites,
 
-            "total_favorites": total_favorites,
+            "registered_users":
+                registered_users,
 
-            "registered_users": registered_users,
+            "total_views":
+                total_views,
 
-            "total_users": registered_users,
-
-            "active_viewers": active_viewers
         }
 
 
-    # ========================================================
-    # DATABASE INITIALIZATION
-    # ========================================================
+    # =========================================================
+    # INIT DATABASE
+    # =========================================================
 
     @app.cli.command("init-db")
     def init_db():
 
-        """Initialize database and ensure admin exists."""
+        """Initialize the database."""
 
         from models import db as _db
 
@@ -420,7 +369,9 @@ def create_app():
 
         try:
 
-            from auth import get_admin_user
+            from auth import (
+                get_admin_user
+            )
 
             get_admin_user()
 
@@ -433,24 +384,22 @@ def create_app():
         )
 
 
-    # ========================================================
+    # =========================================================
     # CREATE ADMIN
-    # ========================================================
+    # =========================================================
 
     @app.cli.command("create-admin")
 
     @click.option(
         "--username",
         "-u",
-        required=True,
-        help="Admin username"
+        required=True
     )
 
     @click.option(
         "--password",
         "-p",
-        required=True,
-        help="Admin password"
+        required=True
     )
 
     def create_admin(
@@ -458,12 +407,11 @@ def create_app():
         password
     ):
 
-        """Create or update an administrator."""
-
         from models import (
             User,
             db as _db
         )
+
 
         user = (
             User.query
@@ -486,7 +434,9 @@ def create_app():
                 password
             )
 
-            _db.session.add(user)
+            _db.session.add(
+                user
+            )
 
             _db.session.commit()
 
@@ -509,24 +459,22 @@ def create_app():
             )
 
 
-    # ========================================================
+    # =========================================================
     # CREATE API TOKEN
-    # ========================================================
+    # =========================================================
 
     @app.cli.command("create-token")
 
     @click.option(
         "--username",
         "-u",
-        required=True,
-        help="Admin username"
+        required=True
     )
 
     @click.option(
         "--name",
         "-n",
-        required=False,
-        help="Token name"
+        required=False
     )
 
     def create_token(
@@ -534,26 +482,37 @@ def create_app():
         name
     ):
 
-        """Create API token for admin."""
-
         from models import (
             User,
             ApiToken,
             db as _db
         )
 
+        import secrets
+
+
         user = (
             User.query
             .filter(
-                (User.username == username)
+                (
+                    User.username
+                    == username
+                )
                 |
-                (User.email == username)
+                (
+                    User.email
+                    == username
+                )
             )
             .first()
         )
 
 
-        if not user or not user.is_admin:
+        if not user or not getattr(
+            user,
+            "is_admin",
+            False
+        ):
 
             print(
                 "User not found or not an admin"
@@ -566,8 +525,10 @@ def create_app():
             32
         )
 
-        token_hash = generate_password_hash(
-            raw
+        token_hash = (
+            generate_password_hash(
+                raw
+            )
         )
 
 
@@ -577,7 +538,10 @@ def create_app():
             token_hash=token_hash
         )
 
-        _db.session.add(token)
+
+        _db.session.add(
+            token
+        )
 
         _db.session.commit()
 
@@ -594,14 +558,16 @@ def create_app():
         print(raw)
 
 
-    # ========================================================
-    # BACKUP SQLITE DATABASE
-    # ========================================================
+    # =========================================================
+    # BACKUP DATABASE
+    # =========================================================
 
     @app.cli.command("backup-db")
     def backup_db_cli():
 
-        """Create timestamped SQLite backup."""
+        import shutil
+        import datetime
+
 
         src = os.path.join(
             app.instance_path,
@@ -624,14 +590,16 @@ def create_app():
             "backups"
         )
 
+
         os.makedirs(
             backups_dir,
             exist_ok=True
         )
 
 
-        timestamp = (
-            datetime.utcnow()
+        ts = (
+            datetime.datetime
+            .utcnow()
             .strftime(
                 "%Y%m%dT%H%M%SZ"
             )
@@ -640,7 +608,7 @@ def create_app():
 
         dst = os.path.join(
             backups_dir,
-            f"ink_and_echoes-{timestamp}.db"
+            f"ink_and_echoes-{ts}.db"
         )
 
 
@@ -656,9 +624,9 @@ def create_app():
         )
 
 
-    # ========================================================
+    # =========================================================
     # HOME
-    # ========================================================
+    # =========================================================
 
     @app.route("/")
     def index():
@@ -670,49 +638,37 @@ def create_app():
         )
 
 
-        # ----------------------------------------------------
-        # HOME PAGE VIEW
-        # ----------------------------------------------------
+        # Home page view
 
-        try:
+        page_view = (
+            PageView.query
+            .filter_by(
+                page="home"
+            )
+            .first()
+        )
 
-            page_view = (
-                PageView.query
-                .filter_by(
-                    page="home"
-                )
-                .first()
+
+        if page_view is None:
+
+            page_view = PageView(
+                page="home",
+                count=1
             )
 
+            db.session.add(
+                page_view
+            )
 
-            if page_view is None:
+        else:
 
-                page_view = PageView(
-                    page="home",
-                    count=1
-                )
-
-                db.session.add(
-                    page_view
-                )
-
-            else:
-
-                page_view.count += 1
+            page_view.count += 1
 
 
-            db.session.commit()
-
-        except Exception:
-
-            db.session.rollback()
-
-            page_view = None
+        db.session.commit()
 
 
-        # ----------------------------------------------------
-        # POEMS
-        # ----------------------------------------------------
+        # Latest poems
 
         poems = (
             Poem.query
@@ -727,38 +683,27 @@ def create_app():
         )
 
 
-        # ----------------------------------------------------
-        # RECENT POEMS
-        # ----------------------------------------------------
+        # Recent poem IDs
 
-        recent_poem_ids = set()
+        recent_poem_ids = {
 
+            poem.id
 
-        for poem in poems:
+            for poem in poems
 
-            if poem.created_at:
+            if (
+                poem.created_at
+                and
+                (
+                    datetime.utcnow()
+                    - poem.created_at
+                ).days <= 7
+            )
 
-                try:
-
-                    age = (
-                        datetime.utcnow()
-                        - poem.created_at
-                    )
-
-                    if age.days <= 7:
-
-                        recent_poem_ids.add(
-                            poem.id
-                        )
-
-                except Exception:
-
-                    pass
+        }
 
 
-        # ----------------------------------------------------
-        # LATEST POEM
-        # ----------------------------------------------------
+        # Latest poem
 
         latest_poem = (
             Poem.query
@@ -773,18 +718,20 @@ def create_app():
 
 
         has_new_poem = bool(
+
             latest_poem
+
             and latest_poem.created_at
+
             and (
                 datetime.utcnow()
                 - latest_poem.created_at
             ).days <= 7
+
         )
 
 
-        # ----------------------------------------------------
-        # FEATURED POEM
-        # ----------------------------------------------------
+        # Featured poem
 
         featured_poem = (
             Poem.query
@@ -792,43 +739,24 @@ def create_app():
                 published=True,
                 is_featured=True
             )
-            .order_by(
-                Poem.created_at.desc()
-            )
             .first()
         )
 
 
-        # If there is no featured poem,
-        # use latest poem as fallback.
+        # If no featured poem exists,
+        # use latest poem for Home.
 
         if featured_poem is None:
 
             featured_poem = latest_poem
 
 
-        # ----------------------------------------------------
-        # CATEGORIES
-        # ----------------------------------------------------
+        # Categories
 
-        try:
+        categories = (
+            Category.query.all()
+        )
 
-            categories = (
-                Category.query
-                .order_by(
-                    Category.name.asc()
-                )
-                .all()
-            )
-
-        except Exception:
-
-            categories = []
-
-
-        # ----------------------------------------------------
-        # RENDER HOME
-        # ----------------------------------------------------
 
         return render_template(
 
@@ -836,27 +764,27 @@ def create_app():
 
             poems=poems,
 
-            recent_poem_ids=recent_poem_ids,
+            recent_poem_ids=
+                recent_poem_ids,
 
-            latest_poem=latest_poem,
+            latest_poem=
+                latest_poem,
 
-            featured_poem=featured_poem,
+            has_new_poem=
+                has_new_poem,
 
-            has_new_poem=has_new_poem,
+            featured_poem=
+                featured_poem,
 
-            categories=categories,
+            categories=
+                categories,
 
-            total_views=(
-                page_view.count
-                if page_view
-                else 0
-            )
         )
 
 
-    # ========================================================
-    # POEMS LIBRARY
-    # ========================================================
+    # =========================================================
+    # POEMS
+    # =========================================================
 
     @app.route("/poems")
     def poems():
@@ -865,51 +793,40 @@ def create_app():
             Poem,
             PageView,
             Category,
-            Favorite
         )
 
 
-        # ----------------------------------------------------
-        # POEMS PAGE VIEW
-        # ----------------------------------------------------
+        # Increment poems page views
 
-        try:
+        page_view = (
+            PageView.query
+            .filter_by(
+                page="poems"
+            )
+            .first()
+        )
 
-            page_view = (
-                PageView.query
-                .filter_by(
-                    page="poems"
-                )
-                .first()
+
+        if page_view is None:
+
+            page_view = PageView(
+                page="poems",
+                count=1
             )
 
+            db.session.add(
+                page_view
+            )
 
-            if page_view is None:
+        else:
 
-                page_view = PageView(
-                    page="poems",
-                    count=1
-                )
-
-                db.session.add(
-                    page_view
-                )
-
-            else:
-
-                page_view.count += 1
+            page_view.count += 1
 
 
-            db.session.commit()
-
-        except Exception:
-
-            db.session.rollback()
+        db.session.commit()
 
 
-        # ----------------------------------------------------
-        # FILTERS
-        # ----------------------------------------------------
+        # Filters
 
         category_filter = (
             request.args
@@ -937,13 +854,10 @@ def create_app():
                 "sort",
                 "newest"
             )
-            .strip()
         )
 
 
-        # ----------------------------------------------------
-        # BASE QUERY
-        # ----------------------------------------------------
+        # Base query
 
         query = (
             Poem.query
@@ -953,20 +867,20 @@ def create_app():
         )
 
 
-        # ----------------------------------------------------
-        # CATEGORY FILTER
-        # ----------------------------------------------------
+        # Category filter
 
         if (
             category_filter
-            and category_filter != "all"
+            and
+            category_filter != "all"
         ):
 
             try:
 
-                query = query.filter_by(
-                    category_id=int(
-                        category_filter
+                query = (
+                    query.filter_by(
+                        category_id=
+                            int(category_filter)
                     )
                 )
 
@@ -975,9 +889,7 @@ def create_app():
                 pass
 
 
-        # ----------------------------------------------------
-        # SEARCH
-        # ----------------------------------------------------
+        # Search
 
         if search_query:
 
@@ -988,106 +900,125 @@ def create_app():
 
             query = query.filter(
 
-                (Poem.title.ilike(
-                    search_pattern
-                ))
+                (
+                    Poem.title
+                    .ilike(
+                        search_pattern
+                    )
+                )
 
                 |
 
-                (Poem.body.ilike(
-                    search_pattern
-                ))
+                (
+                    Poem.body
+                    .ilike(
+                        search_pattern
+                    )
+                )
 
                 |
 
-                (Poem.description.ilike(
-                    search_pattern
-                ))
+                (
+                    Poem.description
+                    .ilike(
+                        search_pattern
+                    )
+                )
 
             )
 
 
-        # ----------------------------------------------------
-        # SORTING
-        # ----------------------------------------------------
+        # Sorting
 
         if sort_by == "oldest":
 
-            query = query.order_by(
-                Poem.created_at.asc()
+            query = (
+                query.order_by(
+                    Poem.created_at.asc()
+                )
             )
 
         elif sort_by == "a-z":
 
-            query = query.order_by(
-                Poem.title.asc()
+            query = (
+                query.order_by(
+                    Poem.title.asc()
+                )
             )
 
         else:
 
-            query = query.order_by(
-                Poem.created_at.desc()
+            query = (
+                query.order_by(
+                    Poem.created_at.desc()
+                )
             )
 
 
-        poems_list = query.all()
-
-
-        # ----------------------------------------------------
-        # CATEGORIES
-        # ----------------------------------------------------
+        poems = query.all()
 
         categories = (
             Category.query.all()
         )
 
 
-        # ----------------------------------------------------
-        # USER FAVORITES
-        # ----------------------------------------------------
+        # User favorites
 
         user_favorites = []
 
 
         if current_user.is_authenticated:
 
-            user_favorites = [
+            from models import Favorite
 
-                fav.poem_id
+            try:
 
-                for fav in (
-                    Favorite.query
-                    .filter_by(
-                        user_id=current_user.id
+                user_favorites = [
+
+                    fav.poem_id
+
+                    for fav in (
+                        Favorite.query
+                        .filter_by(
+                            user_id=
+                                current_user.id
+                        )
+                        .all()
                     )
-                    .all()
-                )
 
-            ]
+                ]
+
+            except Exception:
+
+                user_favorites = []
 
 
         return render_template(
 
             "poems.html",
 
-            poems=poems_list,
+            poems=poems,
 
             categories=categories,
 
-            user_favorites=user_favorites,
+            user_favorites=
+                user_favorites,
 
-            current_sort=sort_by,
+            current_sort=
+                sort_by,
 
-            current_search=search_query,
+            current_search=
+                search_query,
 
-            current_category=category_filter
+            current_category=
+                category_filter,
 
         )
 
 
-    # ========================================================
+    # =========================================================
     # FULL POEMS
-    # ========================================================
+    # =========================================================
 
     @app.route("/poems/full")
     def poems_full():
@@ -1095,7 +1026,7 @@ def create_app():
         from models import Poem
 
 
-        poems_list = (
+        poems = (
             Poem.query
             .filter_by(
                 published=True
@@ -1111,22 +1042,20 @@ def create_app():
 
             "poems.html",
 
-            poems=poems_list,
+            poems=poems,
 
             require_login=False,
 
-            full_view=True
+            full_view=True,
 
         )
 
 
-    # ========================================================
+    # =========================================================
     # POEM DETAIL
-    # ========================================================
+    # =========================================================
 
-    @app.route(
-        "/poem/<int:poem_id>"
-    )
+    @app.route("/poem/<int:poem_id>")
     def poem_detail(
         poem_id
     ):
@@ -1134,7 +1063,7 @@ def create_app():
         from models import (
             Poem,
             Favorite,
-            History
+            History,
         )
 
 
@@ -1157,57 +1086,58 @@ def create_app():
             )
 
 
-        # ----------------------------------------------------
-        # USER HISTORY
-        # ----------------------------------------------------
+        # Reading history
 
         if current_user.is_authenticated:
 
-            try:
+            history = History(
 
-                history = History(
-                    user_id=current_user.id,
-                    poem_id=poem_id
-                )
+                user_id=
+                    current_user.id,
 
-                db.session.add(
-                    history
-                )
+                poem_id=
+                    poem_id,
 
-                db.session.commit()
+            )
 
-            except Exception:
+            db.session.add(
+                history
+            )
 
-                db.session.rollback()
+            db.session.commit()
 
 
-        # ----------------------------------------------------
-        # FAVORITE STATUS
-        # ----------------------------------------------------
+        # Favorite status
 
         is_favorited = False
 
 
         if current_user.is_authenticated:
 
-            favorite = (
-                Favorite.query
-                .filter_by(
-                    user_id=current_user.id,
-                    poem_id=poem_id
+            try:
+
+                favorite = (
+                    Favorite.query
+                    .filter_by(
+                        user_id=
+                            current_user.id,
+
+                        poem_id=
+                            poem_id,
+                    )
+                    .first()
                 )
-                .first()
-            )
+
+                is_favorited = (
+                    favorite is not None
+                )
+
+            except Exception:
+
+                is_favorited = False
 
 
-            is_favorited = (
-                favorite is not None
-            )
-
-
-        # ----------------------------------------------------
-        # PREVIOUS / NEXT POEMS
-        # ----------------------------------------------------
+        # Previous / next
 
         all_poems = (
             Poem.query
@@ -1227,38 +1157,47 @@ def create_app():
         ]
 
 
-        try:
+        current_index = (
 
-            current_index = poem_ids.index(
-                poem.id
+            poem_ids.index(poem_id)
+
+            if poem_id in poem_ids
+
+            else -1
+
+        )
+
+
+        prev_poem = (
+
+            all_poems[
+                current_index - 1
+            ]
+
+            if current_index > 0
+
+            else None
+
+        )
+
+
+        next_poem = (
+
+            all_poems[
+                current_index + 1
+            ]
+
+            if (
+                current_index >= 0
+                and
+                current_index
+                <
+                len(all_poems) - 1
             )
 
-        except ValueError:
+            else None
 
-            current_index = 0
-
-
-        previous_poem = None
-
-        next_poem = None
-
-
-        if current_index < len(poem_ids) - 1:
-
-            previous_poem = Poem.query.get(
-                poem_ids[
-                    current_index + 1
-                ]
-            )
-
-
-        if current_index > 0:
-
-            next_poem = Poem.query.get(
-                poem_ids[
-                    current_index - 1
-                ]
-            )
+        )
 
 
         return render_template(
@@ -1267,18 +1206,208 @@ def create_app():
 
             poem=poem,
 
-            is_favorited=is_favorited,
+            is_favorited=
+                is_favorited,
 
-            previous_poem=previous_poem,
+            prev_poem=
+                prev_poem,
 
-            next_poem=next_poem
+            next_poem=
+                next_poem,
 
         )
 
 
-    # ========================================================
+    # =========================================================
+    # FAVORITES
+    # =========================================================
+
+    @app.route("/favorites")
+    @login_required
+    def favorites():
+
+        from models import (
+            Poem,
+            Favorite
+        )
+
+
+        try:
+
+            favorites = (
+                Favorite.query
+                .filter_by(
+                    user_id=
+                        current_user.id
+                )
+                .order_by(
+                    Favorite.created_at.desc()
+                )
+                .all()
+            )
+
+        except Exception:
+
+            favorites = []
+
+
+        favorite_poems = []
+
+
+        for fav in favorites:
+
+            try:
+
+                poem = Poem.query.get(
+                    fav.poem_id
+                )
+
+                if (
+                    poem
+                    and
+                    poem.published
+                ):
+
+                    favorite_poems.append(
+                        poem
+                    )
+
+            except Exception:
+
+                pass
+
+
+        return render_template(
+
+            "favorites.html",
+
+            poems=favorite_poems,
+
+            total_favorites=
+                len(favorite_poems),
+
+        )
+
+
+    # =========================================================
+    # FAVORITE API
+    # =========================================================
+
+    @app.route(
+        "/api/v1/favorite/<int:poem_id>",
+        methods=["POST"]
+    )
+    @login_required
+    def api_favorite_poem(
+        poem_id
+    ):
+
+        from models import (
+            Poem,
+            Favorite
+        )
+
+
+        poem = Poem.query.get(
+            poem_id
+        )
+
+
+        if (
+            poem is None
+            or not poem.published
+        ):
+
+            return jsonify({
+                "error":
+                    "Poem not found"
+            }), 404
+
+
+        try:
+
+            existing_favorite = (
+                Favorite.query
+                .filter_by(
+                    user_id=
+                        current_user.id,
+
+                    poem_id=
+                        poem_id,
+                )
+                .first()
+            )
+
+        except Exception:
+
+            return jsonify({
+
+                "error":
+                    "Favorites database is not ready yet."
+
+            }), 500
+
+
+        if existing_favorite:
+
+            db.session.delete(
+                existing_favorite
+            )
+
+            db.session.commit()
+
+
+            return jsonify({
+
+                "success":
+                    True,
+
+                "favorited":
+                    False,
+
+                "message":
+                    "Removed from favorites"
+
+            })
+
+
+        else:
+
+            new_favorite = Favorite(
+
+                user_id=
+                    current_user.id,
+
+                poem_id=
+                    poem_id,
+
+            )
+
+
+            db.session.add(
+                new_favorite
+            )
+
+            db.session.commit()
+
+
+            return jsonify({
+
+                "success":
+                    True,
+
+                "favorited":
+                    True,
+
+                "message":
+                    "Added to favorites"
+
+            })
+
+
+    # =========================================================
     # AI COMPANION
-    # ========================================================
+    # =========================================================
 
     @app.route("/chat")
     def chat():
@@ -1288,9 +1417,9 @@ def create_app():
         )
 
 
-    # ========================================================
-    # API — ALL POEMS
-    # ========================================================
+    # =========================================================
+    # POEMS API
+    # =========================================================
 
     @app.route(
         "/api/v1/poems"
@@ -1303,7 +1432,7 @@ def create_app():
         )
 
 
-        poems_list = (
+        poems = (
             Poem.query
             .filter_by(
                 published=True
@@ -1318,7 +1447,7 @@ def create_app():
         output = []
 
 
-        for poem in poems_list:
+        for poem in poems:
 
             category_name = None
 
@@ -1340,23 +1469,31 @@ def create_app():
 
             output.append({
 
-                "id": poem.id,
+                "id":
+                    poem.id,
 
-                "title": poem.title,
+                "title":
+                    poem.title,
 
-                "body": poem.body,
+                "body":
+                    poem.body,
 
-                "description": poem.description,
+                "description":
+                    getattr(
+                        poem,
+                        "description",
+                        None
+                    ),
 
-                "category": category_name,
+                "category":
+                    category_name,
 
-                "tags": poem.get_tags_list(),
-
-                "created_at": (
-                    poem.created_at.isoformat()
-                    if poem.created_at
-                    else None
-                )
+                "created_at":
+                    (
+                        poem.created_at.isoformat()
+                        if poem.created_at
+                        else None
+                    ),
 
             })
 
@@ -1366,9 +1503,61 @@ def create_app():
         )
 
 
-    # ========================================================
-    # API — SINGLE POEM
-    # ========================================================
+    # =========================================================
+    # NOTIFICATIONS API
+    # =========================================================
+
+    @app.route(
+        "/api/v1/notifications"
+    )
+    def api_notifications():
+
+        from models import Poem
+
+
+        poems = (
+            Poem.query
+            .filter_by(
+                published=True
+            )
+            .order_by(
+                Poem.created_at.desc()
+            )
+            .limit(10)
+            .all()
+        )
+
+
+        return jsonify([
+
+            {
+
+                "id":
+                    poem.id,
+
+                "title":
+                    poem.title,
+
+                "created_at":
+                    (
+                        poem.created_at.isoformat()
+                        if poem.created_at
+                        else None
+                    ),
+
+                "url":
+                    url_for("poems"),
+
+            }
+
+            for poem in poems
+
+        ])
+
+
+    # =========================================================
+    # SINGLE POEM API
+    # =========================================================
 
     @app.route(
         "/api/v1/poems/<int:poem_id>"
@@ -1393,12 +1582,12 @@ def create_app():
             or not poem.published
         ):
 
-            return (
-                jsonify({
-                    "error": "not found"
-                }),
-                404
-            )
+            return jsonify({
+
+                "error":
+                    "not found"
+
+            }), 404
 
 
         category_name = None
@@ -1421,42 +1610,61 @@ def create_app():
 
         return jsonify({
 
-            "id": poem.id,
+            "id":
+                poem.id,
 
-            "title": poem.title,
+            "title":
+                poem.title,
 
-            "body": poem.body,
+            "body":
+                poem.body,
 
-            "description": poem.description,
+            "description":
+                getattr(
+                    poem,
+                    "description",
+                    None
+                ),
 
-            "category": category_name,
+            "category":
+                category_name,
 
-            "tags": poem.get_tags_list(),
-
-            "created_at": (
-                poem.created_at.isoformat()
-                if poem.created_at
-                else None
-            )
+            "created_at":
+                (
+                    poem.created_at.isoformat()
+                    if poem.created_at
+                    else None
+                ),
 
         })
 
 
-    # ========================================================
-    # ADMIN API AUTHORIZATION
-    # ========================================================
+    # =========================================================
+    # ADMIN REQUEST CHECK
+    # =========================================================
 
     def _is_admin_request():
 
-        # ----------------------------------------------------
-        # LOGGED-IN ADMIN
-        # ----------------------------------------------------
+        # Logged-in admin
 
         try:
 
             if (
-                current_user.is_authenticated
-                and current_user.is_admin
+
+                getattr(
+                    current_user,
+                    "is_authenticated",
+                    False
+                )
+
+                and
+
+                getattr(
+                    current_user,
+                    "is_admin",
+                    False
+                )
+
             ):
 
                 return True
@@ -1466,9 +1674,7 @@ def create_app():
             pass
 
 
-        # ----------------------------------------------------
         # X-API-KEY
-        # ----------------------------------------------------
 
         api_key = request.headers.get(
             "X-API-KEY"
@@ -1476,39 +1682,53 @@ def create_app():
 
 
         if (
+
             api_key
-            and api_key == app.config.get(
+
+            and
+
+            api_key
+            ==
+            app.config.get(
                 "SECRET_KEY"
             )
+
         ):
 
             return True
 
 
-        # ----------------------------------------------------
-        # BASIC AUTH
-        # ----------------------------------------------------
+        # Basic authentication
 
-        authorization = request.headers.get(
+        auth = request.headers.get(
             "Authorization"
         )
 
 
         if (
-            authorization
-            and authorization.startswith(
-                "Basic "
-            )
+            auth
+            and
+            auth.startswith("Basic ")
         ):
 
             try:
 
+                import base64
+
+                from models import User
+
+
+                encoded = (
+                    auth.split(
+                        " ",
+                        1
+                    )[1]
+                )
+
+
                 credentials = (
                     base64.b64decode(
-                        authorization.split(
-                            " ",
-                            1
-                        )[1]
+                        encoded
                     )
                     .decode("utf-8")
                 )
@@ -1522,26 +1742,43 @@ def create_app():
                 )
 
 
-                from models import User
-
-
                 user = (
                     User.query
                     .filter(
-                        (User.username == username)
+                        (
+                            User.username
+                            ==
+                            username
+                        )
                         |
-                        (User.email == username)
+                        (
+                            User.email
+                            ==
+                            username
+                        )
                     )
                     .first()
                 )
 
 
                 if (
+
                     user
-                    and user.check_password(
+
+                    and
+
+                    user.check_password(
                         password
                     )
-                    and user.is_admin
+
+                    and
+
+                    getattr(
+                        user,
+                        "is_admin",
+                        False
+                    )
+
                 ):
 
                     return True
@@ -1552,26 +1789,27 @@ def create_app():
                 pass
 
 
-        # ----------------------------------------------------
-        # BEARER TOKEN
-        # ----------------------------------------------------
+        # Bearer token
 
         if (
-            authorization
-            and authorization.startswith(
-                "Bearer "
-            )
+            auth
+            and
+            auth.startswith("Bearer ")
         ):
 
             try:
 
-                token = authorization.split(
-                    " ",
-                    1
-                )[1]
+                token = (
+                    auth.split(
+                        " ",
+                        1
+                    )[1]
+                )
 
 
-                from models import ApiToken
+                from models import (
+                    ApiToken
+                )
 
 
                 for api_token in (
@@ -1579,12 +1817,20 @@ def create_app():
                 ):
 
                     if (
+
                         check_password_hash(
                             api_token.token_hash,
                             token
                         )
-                        and api_token.user
-                        and api_token.user.is_admin
+
+                        and
+
+                        getattr(
+                            api_token.user,
+                            "is_admin",
+                            False
+                        )
+
                     ):
 
                         return True
@@ -1598,9 +1844,9 @@ def create_app():
         return False
 
 
-    # ========================================================
-    # API — CREATE POEM
-    # ========================================================
+    # =========================================================
+    # CREATE POEM API
+    # =========================================================
 
     @app.route(
         "/api/v1/poems",
@@ -1610,27 +1856,26 @@ def create_app():
 
         if not _is_admin_request():
 
-            return (
-                jsonify({
-                    "error": "unauthorized"
-                }),
-                401
-            )
+            return jsonify({
+
+                "error":
+                    "unauthorized"
+
+            }), 401
 
 
         if not request.is_json:
 
-            return (
-                jsonify({
-                    "error": "expected JSON body"
-                }),
-                400
-            )
+            return jsonify({
+
+                "error":
+                    "expected JSON body"
+
+            }), 400
 
 
         payload = (
             request.get_json()
-            or {}
         )
 
 
@@ -1646,35 +1891,10 @@ def create_app():
         ).strip()
 
 
-        description = (
-            payload.get("description")
-            or ""
-        ).strip()
-
-
         category_name = (
             payload.get("category")
             or ""
         ).strip()
-
-
-        tags = (
-            payload.get("tags")
-            or ""
-        )
-
-
-        if isinstance(tags, list):
-
-            tags = ",".join(
-                str(tag).strip()
-                for tag in tags
-                if str(tag).strip()
-            )
-
-        else:
-
-            tags = str(tags).strip()
 
 
         published = bool(
@@ -1687,13 +1907,12 @@ def create_app():
 
         if not title or not body:
 
-            return (
-                jsonify({
-                    "error":
+            return jsonify({
+
+                "error":
                     "title and body required"
-                }),
-                400
-            )
+
+            }), 400
 
 
         from models import (
@@ -1703,15 +1922,17 @@ def create_app():
         )
 
 
-        # ----------------------------------------------------
-        # DUPLICATE CHECK
-        # ----------------------------------------------------
-
-        def normalize_text(value):
+        def normalize_text(
+            text
+        ):
 
             return (
-                " ".join(
-                    (value or "")
+                " "
+                .join(
+                    (
+                        text
+                        or ""
+                    )
                     .strip()
                     .split()
                 )
@@ -1720,11 +1941,16 @@ def create_app():
 
 
         normalized_title = (
-            normalize_text(title)
+            normalize_text(
+                title
+            )
         )
 
+
         normalized_body = (
-            normalize_text(body)
+            normalize_text(
+                body
+            )
         )
 
 
@@ -1737,29 +1963,33 @@ def create_app():
         ):
 
             if (
+
                 normalize_text(
                     poem.title
                 )
-                == normalized_title
+                ==
+                normalized_title
+
                 and
+
                 normalize_text(
                     poem.body
                 )
-                == normalized_body
+                ==
+                normalized_body
+
             ):
 
-                return (
-                    jsonify({
-                        "ok": False,
-                        "error": "duplicate"
-                    }),
-                    409
-                )
+                return jsonify({
 
+                    "ok":
+                        False,
 
-        # ----------------------------------------------------
-        # CATEGORY
-        # ----------------------------------------------------
+                    "error":
+                        "duplicate"
+
+                }), 409
+
 
         category = None
 
@@ -1788,27 +2018,23 @@ def create_app():
                 _db.session.flush()
 
 
-        # ----------------------------------------------------
-        # CREATE POEM
-        # ----------------------------------------------------
-
         poem = Poem(
 
-            title=title,
+            title=
+                title,
 
-            body=body,
+            body=
+                body,
 
-            description=description,
+            category_id=
+                (
+                    category.id
+                    if category
+                    else None
+                ),
 
-            category_id=(
-                category.id
-                if category
-                else None
-            ),
-
-            tags=tags,
-
-            published=published
+            published=
+                published,
 
         )
 
@@ -1822,18 +2048,21 @@ def create_app():
 
         return jsonify({
 
-            "ok": True,
+            "ok":
+                True,
 
-            "id": poem.id,
+            "id":
+                poem.id,
 
-            "title": poem.title
+            "title":
+                poem.title
 
         })
 
 
-    # ========================================================
-    # ACTIVE VIEWER PING
-    # ========================================================
+    # =========================================================
+    # ACTIVE VIEWERS — PING
+    # =========================================================
 
     @app.route(
         "/api/v1/viewers/ping",
@@ -1843,18 +2072,16 @@ def create_app():
 
         if not request.is_json:
 
-            return (
-                jsonify({
-                    "error":
+            return jsonify({
+
+                "error":
                     "expected JSON"
-                }),
-                400
-            )
+
+            }), 400
 
 
         payload = (
             request.get_json()
-            or {}
         )
 
 
@@ -1876,13 +2103,12 @@ def create_app():
 
         if not client_id or not page:
 
-            return (
-                jsonify({
-                    "error":
+            return jsonify({
+
+                "error":
                     "client_id and page required"
-                }),
-                400
-            )
+
+            }), 400
 
 
         from models import (
@@ -1891,10 +2117,7 @@ def create_app():
         )
 
 
-        now = datetime.utcnow()
-
-
-        viewer = (
+        av = (
             ActiveViewer.query
             .filter_by(
                 client_id=client_id,
@@ -1904,77 +2127,100 @@ def create_app():
         )
 
 
-        if viewer is None:
+        if av is None:
 
-            viewer = ActiveViewer(
+            av = ActiveViewer(
 
-                client_id=client_id,
+                client_id=
+                    client_id,
 
-                page=page,
+                page=
+                    page,
 
-                last_seen=now
+                last_seen=
+                    datetime.utcnow(),
 
             )
 
             _db.session.add(
-                viewer
+                av
             )
 
         else:
 
-            viewer.last_seen = now
+            av.last_seen = (
+                datetime.utcnow()
+            )
 
 
         _db.session.commit()
 
 
         return jsonify({
-            "ok": True
+
+            "ok":
+                True
+
         })
 
 
-    # ========================================================
-    # ACTIVE VIEWER COUNT
-    # ========================================================
+    # =========================================================
+    # ACTIVE VIEWERS — COUNT
+    # =========================================================
 
     @app.route(
         "/api/v1/viewers/<page>"
     )
-    def api_viewers_count(page):
+    def api_viewers_count(
+        page
+    ):
 
-        from models import ActiveViewer
+        from models import (
+            ActiveViewer
+        )
+
+        from datetime import timedelta
 
 
         cutoff = (
             datetime.utcnow()
-            - timedelta(
+            -
+            timedelta(
                 seconds=60
             )
         )
 
 
         count = (
+
             ActiveViewer.query
+
             .filter(
-                ActiveViewer.page == page,
-                ActiveViewer.last_seen >= cutoff
+                ActiveViewer.page
+                ==
+                page,
+
+                ActiveViewer.last_seen
+                >=
+                cutoff,
             )
+
             .count()
+
         )
 
 
         return jsonify({
 
-            "count": count,
-
-            "page": page
+            "count":
+                count
 
         })
 
 
-    # ========================================================
+    # =========================================================
     # SUGGESTIONS
-    # ========================================================
+    # =========================================================
 
     @app.route(
         "/suggestions",
@@ -1982,10 +2228,12 @@ def create_app():
     )
     def suggestions():
 
-        from models import Suggestion
-
-
         if request.method == "POST":
+
+            from models import (
+                Suggestion
+            )
+
 
             message = (
                 request.form
@@ -1997,9 +2245,17 @@ def create_app():
 
 
             user_id = (
+
                 current_user.id
-                if current_user.is_authenticated
+
+                if getattr(
+                    current_user,
+                    "is_authenticated",
+                    False
+                )
+
                 else None
+
             )
 
 
@@ -2007,9 +2263,11 @@ def create_app():
 
                 suggestion = Suggestion(
 
-                    user_id=user_id,
+                    user_id=
+                        user_id,
 
-                    message=message
+                    message=
+                        message,
 
                 )
 
@@ -2044,9 +2302,9 @@ def create_app():
         )
 
 
-    # ========================================================
+    # =========================================================
     # ADMIN SUGGESTIONS
-    # ========================================================
+    # =========================================================
 
     @app.route(
         "/admin/suggestions"
@@ -2060,7 +2318,11 @@ def create_app():
         )
 
 
-        if not current_user.is_admin:
+        if not getattr(
+            current_user,
+            "is_admin",
+            False
+        ):
 
             flash(
                 "Admin access required."
@@ -2086,19 +2348,25 @@ def create_app():
         for suggestion in suggestions:
 
             user = (
+
                 User.query.get(
                     suggestion.user_id
                 )
+
                 if suggestion.user_id
+
                 else None
+
             )
 
 
             results.append({
 
-                "suggestion": suggestion,
+                "suggestion":
+                    suggestion,
 
-                "user": user
+                "user":
+                    user,
 
             })
 
@@ -2116,128 +2384,62 @@ def create_app():
 
             "admin_suggestions.html",
 
-            suggestions=results,
+            suggestions=
+                results,
 
-            users=users
+            users=
+                users,
 
         )
 
 
-    # ========================================================
-    # DATABASE AUTO-CREATE + SAFE MIGRATION
-    # ========================================================
-
-    with app.app_context():
-
-        try:
-
-            db.create_all()
-
-        except Exception as error:
-
-            print(
-                "Database initialization warning:",
-                error
-            )
-
-
-        # ----------------------------------------------------
-        # SAFE MIGRATION FOR EXISTING DATABASE
-        # ----------------------------------------------------
-        #
-        # Your existing PostgreSQL database may have been
-        # created before the Poem.description column existed.
-        #
-        # This adds the missing column without deleting poems.
-        # ----------------------------------------------------
-
-        try:
-
-            from sqlalchemy import inspect, text
-
-
-            inspector = inspect(
-                db.engine
-            )
-
-
-            table_names = (
-                inspector.get_table_names()
-            )
-
-
-            if "poem" in table_names:
-
-                columns = [
-                    column["name"]
-                    for column in inspector.get_columns(
-                        "poem"
-                    )
-                ]
-
-
-                if "description" not in columns:
-
-                    print(
-                        "Adding missing poem.description column..."
-                    )
-
-
-                    with db.engine.begin() as connection:
-
-                        connection.execute(
-                            text(
-                                "ALTER TABLE poem "
-                                "ADD COLUMN description VARCHAR(500)"
-                            )
-                        )
-
-
-                    print(
-                        "poem.description added successfully."
-                    )
-
-
-        except Exception as migration_error:
-
-            print(
-                "Migration check warning:",
-                migration_error
-            )
-
+    # =========================================================
+    # RETURN APP
+    # =========================================================
 
     return app
 
 
-# ============================================================
-# CREATE APPLICATION
-# ============================================================
+# =============================================================
+# CREATE APP
+# =============================================================
 
 app = create_app()
 
 
-# ============================================================
-# LOCAL DEVELOPMENT
-# ============================================================
+# =============================================================
+# CREATE TABLES
+# =============================================================
+
+with app.app_context():
+
+    db.create_all()
+
+
+# =============================================================
+# RUN
+# =============================================================
 
 if __name__ == "__main__":
 
     app.run(
 
-        debug=(
+        debug=
             os.environ.get(
                 "FLASK_DEBUG",
                 "0"
-            ) == "1"
-        ),
-
-        host="0.0.0.0",
-
-        port=int(
-            os.environ.get(
-                "PORT",
-                5000
             )
-        )
+            == "1",
+
+        host=
+            "0.0.0.0",
+
+        port=
+            int(
+                os.environ.get(
+                    "PORT",
+                    5000
+                )
+            ),
 
     )
