@@ -1,0 +1,142 @@
+{% extends 'base.html' %}
+{% block title %}{{ poem.title }} - Moonlit Marginalia{% endblock %}
+{% block content %}
+  <section class="poem-reading-page">
+    <div class="poem-reader-wrapper">
+      <div class="poem-reader-header">
+        <a href="/poems" class="back-link">← Back to Library</a>
+        <div class="poem-reader-controls">
+          <button class="favorite-btn {% if is_favorited %}favorited{% endif %}" 
+                  data-poem-id="{{ poem.id }}"
+                  onclick="toggleFavorite({{ poem.id }}, event)">
+            <span class="favorite-icon">{% if is_favorited %}♥{% else %}♡{% endif %}</span>
+            <span class="favorite-text">{% if is_favorited %}Favorited{% else %}Favorite{% endif %}</span>
+          </button>
+          <button class="font-size-btn" onclick="toggleFontSizeMenu(event)">
+            Aa Font Size
+          </button>
+          <div class="font-size-menu hidden">
+            <button onclick="setFontSize('small')">Small</button>
+            <button onclick="setFontSize('medium')">Medium</button>
+            <button onclick="setFontSize('large')">Large</button>
+          </div>
+          <button class="reading-mode-btn" onclick="toggleReadingMode()">
+            ☾ Reading Mode
+          </button>
+        </div>
+      </div>
+
+      <div class="poem-content-container" id="poem-container">
+        <div class="poem-metadata">
+          <h1 class="poem-title">{{ poem.title }}</h1>
+          {% if poem.category_id %}
+            {% set category = poem.category %}
+            <span class="poem-category-badge">{{ category.name if category else 'Uncategorized' }}</span>
+          {% endif %}
+          <div class="poem-info">
+            <span class="poem-date">{{ poem.created_at.strftime('%B %d, %Y') if poem.created_at else 'Date unknown' }}</span>
+            {% if poem.tags %}
+              <div class="poem-tags">
+                {% for tag in poem.get_tags_list() %}
+                  <span class="tag">#{{ tag }}</span>
+                {% endfor %}
+              </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="poem-body" id="poem-text">{{ poem.body }}</div>
+      </div>
+
+      <div class="poem-reader-footer">
+        <div class="poem-navigation">
+          {% if prev_poem %}
+            <a href="/poem/{{ prev_poem.id }}" class="nav-poem-btn prev-poem-btn">
+              ← Previous Poem
+            </a>
+          {% else %}
+            <div class="nav-poem-btn disabled">← Previous Poem</div>
+          {% endif %}
+          
+          {% if next_poem %}
+            <a href="/poem/{{ next_poem.id }}" class="nav-poem-btn next-poem-btn">
+              Next Poem →
+            </a>
+          {% else %}
+            <div class="nav-poem-btn disabled">Next Poem →</div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    // Font size management
+    const DEFAULT_FONT_SIZE = 'medium';
+    
+    function setFontSize(size) {
+      const container = document.getElementById('poem-container');
+      container.className = container.className.replace(/\bfont-\w+\b/g, '');
+      container.classList.add(`font-${size}`);
+      localStorage.setItem('poemFontSize', size);
+      closeFontSizeMenu();
+    }
+
+    function toggleFontSizeMenu(event) {
+      const menu = event.target.nextElementSibling;
+      menu.classList.toggle('hidden');
+    }
+
+    function closeFontSizeMenu() {
+      const menu = document.querySelector('.font-size-menu');
+      if (menu) menu.classList.add('hidden');
+    }
+
+    // Reading mode toggle
+    function toggleReadingMode() {
+      document.body.classList.toggle('reading-mode');
+      localStorage.setItem('readingMode', document.body.classList.contains('reading-mode'));
+    }
+
+    // Favorite toggle
+    function toggleFavorite(poemId, event) {
+      event.preventDefault();
+      
+      if (!{{ 'true' if current_user.is_authenticated else 'false' }}) {
+        window.location.href = '/login';
+        return;
+      }
+
+      fetch(`/api/v1/favorite/${poemId}`, { method: 'POST' })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            const btn = event.target.closest('.favorite-btn');
+            const icon = btn.querySelector('.favorite-icon');
+            const text = btn.querySelector('.favorite-text');
+            
+            if (data.favorited) {
+              btn.classList.add('favorited');
+              icon.textContent = '♥';
+              text.textContent = 'Favorited';
+            } else {
+              btn.classList.remove('favorited');
+              icon.textContent = '♡';
+              text.textContent = 'Favorite';
+            }
+          }
+        })
+        .catch(error => console.error('Error:', error));
+    }
+
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', () => {
+      const savedFontSize = localStorage.getItem('poemFontSize') || DEFAULT_FONT_SIZE;
+      setFontSize(savedFontSize);
+
+      if (localStorage.getItem('readingMode') === 'true') {
+        toggleReadingMode();
+      }
+    });
+  </script>
+{% endblock %}
