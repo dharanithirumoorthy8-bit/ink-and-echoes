@@ -18,29 +18,26 @@ from models import (
     Category,
     Poem,
     Favorite,
+    db,
     Suggestion,
     User,
     ApiToken,
     ActiveViewer,
-    db,
 )
 
 
 admin_bp = Blueprint('admin', __name__)
 
 
-# =========================================================
-# HELPERS
-# =========================================================
+# ---------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------
 
 def normalize_poem_text(value):
-    return ' '.join(
-        (value or '').strip().split()
-    ).lower()
+    return ' '.join((value or '').strip().split()).lower()
 
 
 def admin_required(f):
-
     from functools import wraps
 
     @wraps(f)
@@ -72,9 +69,7 @@ def admin_index():
         Poem.created_at.desc()
     ).all()
 
-    categories = Category.query.order_by(
-        Category.name.asc()
-    ).all()
+    categories = Category.query.all()
 
     users = User.query.order_by(
         User.created_at.desc()
@@ -90,8 +85,8 @@ def admin_index():
         .count()
     )
 
-    # Safe favorite count.
-    # The previous raw SQL query was causing the /admin 500.
+    # FIXED:
+    # Old Favorite query was causing the /admin 500 error.
     try:
         total_favorites = Favorite.query.count()
     except Exception:
@@ -119,14 +114,12 @@ def admin_index():
 @admin_required
 def admin_new_poem():
 
-    categories = Category.query.order_by(
-        Category.name.asc()
-    ).all()
+    categories = Category.query.all()
 
     if request.method == 'POST':
 
         # -------------------------------------------------
-        # JSON / OFFLINE SYNC
+        # JSON request - offline sync
         # -------------------------------------------------
 
         if request.is_json:
@@ -154,7 +147,7 @@ def admin_new_poem():
             ).strip()
 
         # -------------------------------------------------
-        # NORMAL BROWSER FORM
+        # Normal browser form
         # -------------------------------------------------
 
         else:
@@ -180,7 +173,7 @@ def admin_new_poem():
             ).strip()
 
         # -------------------------------------------------
-        # VALIDATION
+        # Validation
         # -------------------------------------------------
 
         if not title or not body:
@@ -195,11 +188,11 @@ def admin_new_poem():
             )
 
             return redirect(
-                url_for('admin.admin_index')
+                url_for('admin.admin_new_poem')
             )
 
         # -------------------------------------------------
-        # DUPLICATE CHECK
+        # Duplicate check
         # -------------------------------------------------
 
         normalized_title = normalize_poem_text(
@@ -238,17 +231,17 @@ def admin_new_poem():
                 return jsonify({
                     'ok': False,
                     'error': 'duplicate',
-                    'message': message,
+                    'message': message
                 }), 409
 
             flash(message)
 
             return redirect(
-                url_for('admin.admin_index')
+                url_for('admin.admin_new_poem')
             )
 
         # -------------------------------------------------
-        # CATEGORY
+        # Category
         # -------------------------------------------------
 
         category = None
@@ -266,7 +259,7 @@ def admin_new_poem():
                 category = None
 
         # -------------------------------------------------
-        # CREATE POEM
+        # Create poem
         # -------------------------------------------------
 
         poem = Poem(
@@ -285,15 +278,13 @@ def admin_new_poem():
         db.session.add(poem)
 
         # -------------------------------------------------
-        # COVER IMAGE
+        # Cover image
         # -------------------------------------------------
 
         if not request.is_json:
 
-            # IMPORTANT:
-            # admin.html uses profile_image
             image_file = request.files.get(
-                'profile_image'
+                'cover_image'
             )
 
             if (
@@ -305,7 +296,7 @@ def admin_new_poem():
                     '.png',
                     '.jpg',
                     '.jpeg',
-                    '.webp',
+                    '.webp'
                 }
 
                 ext = os.path.splitext(
@@ -314,34 +305,28 @@ def admin_new_poem():
 
                 if ext in allowed:
 
-                    # Flush first so poem.id exists.
-                    db.session.flush()
-
                     upload_dir = os.path.join(
                         current_app.static_folder,
                         'img',
-                        'covers',
+                        'covers'
                     )
 
                     os.makedirs(
                         upload_dir,
-                        exist_ok=True,
+                        exist_ok=True
                     )
 
-                    safe_title = secure_filename(
-                        title.lower().replace(
-                            ' ',
-                            '-'
-                        )
-                    )
+                    # Get poem ID
+                    db.session.flush()
 
                     filename = secure_filename(
-                        f'{safe_title}-{poem.id}{ext}'
+                        f'{title.lower().replace(" ", "-")}'
+                        f'-{poem.id}{ext}'
                     )
 
                     image_path = os.path.join(
                         upload_dir,
-                        filename,
+                        filename
                     )
 
                     image_file.save(
@@ -352,42 +337,15 @@ def admin_new_poem():
                         f'/static/img/covers/{filename}'
                     )
 
-        # -------------------------------------------------
-        # SAVE
-        # -------------------------------------------------
-
-        try:
-
-            db.session.commit()
-
-        except Exception as exc:
-
-            db.session.rollback()
-
-            current_app.logger.exception(
-                'Failed to save poem: %s',
-                exc
-            )
-
-            if request.is_json:
-
-                return jsonify({
-                    'ok': False,
-                    'error': 'database_error',
-                    'message': 'Could not save poem.',
-                }), 500
-
-            flash(
-                'Could not save the poem. Please try again.'
-            )
-
-            return redirect(
-                url_for('admin.admin_index')
-            )
+                    flash(
+                        'Poem cover image was added.'
+                    )
 
         # -------------------------------------------------
-        # RESPONSE
+        # Save
         # -------------------------------------------------
+
+        db.session.commit()
 
         if request.is_json:
 
@@ -395,11 +353,11 @@ def admin_new_poem():
                 'ok': True,
                 'title': title,
                 'id': poem.id,
-                'message': 'Poem saved successfully.',
+                'message': 'Poem saved successfully.'
             })
 
         flash(
-            f'Your poem has found its place in '
+            'Your poem has found its place in '
             f'Moonlit Marginalia: {title}'
         )
 
@@ -409,7 +367,7 @@ def admin_new_poem():
 
     return render_template(
         'admin_new_poem.html',
-        categories=categories,
+        categories=categories
     )
 
 
@@ -435,9 +393,7 @@ def admin_edit_poem(poem_id):
             url_for('admin.admin_index')
         )
 
-    categories = Category.query.order_by(
-        Category.name.asc()
-    ).all()
+    categories = Category.query.all()
 
     if request.method == 'POST':
 
@@ -461,6 +417,10 @@ def admin_edit_poem(poem_id):
             request.form.get('tags') or ''
         ).strip()
 
+        # -------------------------------------------------
+        # Validation
+        # -------------------------------------------------
+
         if not title or not body:
 
             flash(
@@ -470,12 +430,12 @@ def admin_edit_poem(poem_id):
             return redirect(
                 url_for(
                     'admin.admin_edit_poem',
-                    poem_id=poem_id,
+                    poem_id=poem_id
                 )
             )
 
         # -------------------------------------------------
-        # DUPLICATE CHECK
+        # Duplicate check
         # -------------------------------------------------
 
         normalized_title = normalize_poem_text(
@@ -490,41 +450,45 @@ def admin_edit_poem(poem_id):
             published=True
         ).all():
 
-            if other_poem.id == poem_id:
-                continue
+            if other_poem.id != poem_id:
 
-            if (
-                normalize_poem_text(
-                    other_poem.title
-                ) == normalized_title
-                and
-                normalize_poem_text(
-                    other_poem.body
-                ) == normalized_body
-            ):
+                if (
+                    normalize_poem_text(
+                        other_poem.title
+                    ) == normalized_title
+                    and
+                    normalize_poem_text(
+                        other_poem.body
+                    ) == normalized_body
+                ):
 
-                flash(
-                    'A poem with this title and text '
-                    'already exists.'
-                )
-
-                return redirect(
-                    url_for(
-                        'admin.admin_edit_poem',
-                        poem_id=poem_id,
+                    flash(
+                        'A poem with this title and '
+                        'text already exists.'
                     )
-                )
+
+                    return redirect(
+                        url_for(
+                            'admin.admin_edit_poem',
+                            poem_id=poem_id
+                        )
+                    )
 
         # -------------------------------------------------
-        # UPDATE POEM
+        # Update poem
         # -------------------------------------------------
 
         poem.title = title
         poem.body = body
-        poem.description = description or None
+        poem.description = (
+            description or None
+        )
         poem.tags = tags or None
 
+        # -------------------------------------------------
         # Category
+        # -------------------------------------------------
+
         if category_id:
 
             try:
@@ -548,11 +512,11 @@ def admin_edit_poem(poem_id):
             poem.category_id = None
 
         # -------------------------------------------------
-        # UPDATE COVER
+        # Cover image
         # -------------------------------------------------
 
         image_file = request.files.get(
-            'profile_image'
+            'cover_image'
         )
 
         if (
@@ -564,7 +528,7 @@ def admin_edit_poem(poem_id):
                 '.png',
                 '.jpg',
                 '.jpeg',
-                '.webp',
+                '.webp'
             }
 
             ext = os.path.splitext(
@@ -576,29 +540,23 @@ def admin_edit_poem(poem_id):
                 upload_dir = os.path.join(
                     current_app.static_folder,
                     'img',
-                    'covers',
+                    'covers'
                 )
 
                 os.makedirs(
                     upload_dir,
-                    exist_ok=True,
-                )
-
-                safe_title = secure_filename(
-                    title.lower().replace(
-                        ' ',
-                        '-'
-                    )
+                    exist_ok=True
                 )
 
                 filename = secure_filename(
-                    f'{safe_title}-{poem_id}{ext}'
+                    f'{title.lower().replace(" ", "-")}'
+                    f'-{poem_id}{ext}'
                 )
 
                 image_file.save(
                     os.path.join(
                         upload_dir,
-                        filename,
+                        filename
                     )
                 )
 
@@ -610,29 +568,7 @@ def admin_edit_poem(poem_id):
                     'Poem cover image was updated.'
                 )
 
-        try:
-
-            db.session.commit()
-
-        except Exception as exc:
-
-            db.session.rollback()
-
-            current_app.logger.exception(
-                'Failed to update poem: %s',
-                exc
-            )
-
-            flash(
-                'Could not update the poem.'
-            )
-
-            return redirect(
-                url_for(
-                    'admin.admin_edit_poem',
-                    poem_id=poem_id,
-                )
-            )
+        db.session.commit()
 
         flash(
             f'Poem updated: {title}'
@@ -673,27 +609,9 @@ def admin_delete_poem(poem_id):
 
     title = poem.title
 
-    try:
+    db.session.delete(poem)
 
-        db.session.delete(poem)
-        db.session.commit()
-
-    except Exception as exc:
-
-        db.session.rollback()
-
-        current_app.logger.exception(
-            'Failed to delete poem: %s',
-            exc
-        )
-
-        flash(
-            'Could not delete the poem.'
-        )
-
-        return redirect(
-            url_for('admin.admin_index')
-        )
+    db.session.commit()
 
     flash(
         f'Poem removed from the collection: {title}'
@@ -724,50 +642,30 @@ def admin_feature_poem(poem_id):
             'error': 'Poem not found'
         }), 404
 
-    try:
+    # Remove featured status from all other poems
+    Poem.query.filter(
+        Poem.id != poem_id
+    ).update({
+        'is_featured': False
+    })
 
-        # Remove featured status from others
-        Poem.query.filter(
-            Poem.id != poem_id
-        ).update({
-            'is_featured': False
-        })
+    # Toggle current poem
+    poem.is_featured = not poem.is_featured
 
-        # Toggle current poem
-        poem.is_featured = not poem.is_featured
-
-        db.session.commit()
-
-    except Exception as exc:
-
-        db.session.rollback()
-
-        current_app.logger.exception(
-            'Failed to feature poem: %s',
-            exc
-        )
-
-        return jsonify({
-            'success': False,
-            'error': 'Could not update featured status',
-        }), 500
+    db.session.commit()
 
     return jsonify({
-
         'success': True,
-
         'is_featured': poem.is_featured,
-
         'message': (
             f'Featured status: '
             f'{"On" if poem.is_featured else "Off"}'
         ),
-
     })
 
 
 # =========================================================
-# CATEGORIES
+# CATEGORY MANAGEMENT
 # =========================================================
 
 @admin_bp.route(
@@ -826,23 +724,7 @@ def admin_categories():
 
             db.session.add(category)
 
-            try:
-
-                db.session.commit()
-
-            except Exception:
-
-                db.session.rollback()
-
-                flash(
-                    'Could not add category.'
-                )
-
-                return redirect(
-                    url_for(
-                        'admin.admin_categories'
-                    )
-                )
+            db.session.commit()
 
             flash(
                 f'Category added: {name}'
@@ -854,10 +736,8 @@ def admin_categories():
 
         elif action == 'delete':
 
-            category_id = (
-                request.form.get(
-                    'category_id'
-                )
+            category_id = request.form.get(
+                'category_id'
             )
 
             try:
@@ -882,6 +762,7 @@ def admin_categories():
                     )
                 )
 
+            # Check if category is in use
             poems_using = (
                 Poem.query
                 .filter_by(
@@ -893,8 +774,8 @@ def admin_categories():
             if poems_using > 0:
 
                 flash(
-                    f'Cannot delete category in use '
-                    f'by {poems_using} poem(s).'
+                    'Cannot delete category in use by '
+                    f'{poems_using} poem(s).'
                 )
 
                 return redirect(
@@ -907,23 +788,7 @@ def admin_categories():
 
             db.session.delete(category)
 
-            try:
-
-                db.session.commit()
-
-            except Exception:
-
-                db.session.rollback()
-
-                flash(
-                    'Could not delete category.'
-                )
-
-                return redirect(
-                    url_for(
-                        'admin.admin_categories'
-                    )
-                )
+            db.session.commit()
 
             flash(
                 f'Category deleted: {category_name}'
@@ -934,12 +799,10 @@ def admin_categories():
         )
 
     # -----------------------------------------------------
-    # GET CATEGORIES
+    # GET
     # -----------------------------------------------------
 
-    categories = Category.query.order_by(
-        Category.name.asc()
-    ).all()
+    categories = Category.query.all()
 
     category_usage = {}
 
@@ -961,7 +824,7 @@ def admin_categories():
 
 
 # =========================================================
-# VIEWERS & TOKENS
+# ADMIN VIEWERS
 # =========================================================
 
 @admin_bp.route('/admin/viewers')
@@ -969,23 +832,31 @@ def admin_categories():
 @admin_required
 def admin_viewers():
 
-    tokens = ApiToken.query.order_by(
-        ApiToken.created_at.desc()
-    ).all()
+    tokens = (
+        ApiToken.query
+        .order_by(
+            ApiToken.created_at.desc()
+        )
+        .all()
+    )
 
-    viewers = ActiveViewer.query.order_by(
-        ActiveViewer.last_seen.desc()
-    ).all()
+    viewers = (
+        ActiveViewer.query
+        .order_by(
+            ActiveViewer.last_seen.desc()
+        )
+        .all()
+    )
 
     return render_template(
         'admin_viewers.html',
         tokens=tokens,
-        viewers=viewers,
+        viewers=viewers
     )
 
 
 # =========================================================
-# REVOKE TOKEN
+# REVOKE API TOKEN
 # =========================================================
 
 @admin_bp.route(
@@ -1007,18 +878,30 @@ def revoke_token():
         )
 
         return redirect(
-            url_for('admin.admin_viewers')
+            url_for(
+                'admin.admin_viewers'
+            )
         )
 
     try:
 
-        token = ApiToken.query.get(
-            int(token_id)
-        )
+        token_id = int(token_id)
 
     except (ValueError, TypeError):
 
-        token = None
+        flash(
+            'Invalid token id'
+        )
+
+        return redirect(
+            url_for(
+                'admin.admin_viewers'
+            )
+        )
+
+    token = ApiToken.query.get(
+        token_id
+    )
 
     if not token:
 
@@ -1027,32 +910,23 @@ def revoke_token():
         )
 
         return redirect(
-            url_for('admin.admin_viewers')
+            url_for(
+                'admin.admin_viewers'
+            )
         )
 
-    try:
+    db.session.delete(token)
 
-        db.session.delete(token)
-        db.session.commit()
-
-    except Exception:
-
-        db.session.rollback()
-
-        flash(
-            'Could not revoke token.'
-        )
-
-        return redirect(
-            url_for('admin.admin_viewers')
-        )
+    db.session.commit()
 
     flash(
         'Token revoked'
     )
 
     return redirect(
-        url_for('admin.admin_viewers')
+        url_for(
+            'admin.admin_viewers'
+        )
     )
 
 
@@ -1068,13 +942,13 @@ def revoke_token():
 @admin_required
 def remove_viewer():
 
-    client_id = request.form.get(
-        'client_id'
-    )
+    client_id = (
+        request.form.get('client_id') or ''
+    ).strip()
 
-    page = request.form.get(
-        'page'
-    )
+    page = (
+        request.form.get('page') or ''
+    ).strip()
 
     if not client_id or not page:
 
@@ -1083,38 +957,28 @@ def remove_viewer():
         )
 
         return redirect(
-            url_for('admin.admin_viewers')
-        )
-
-    try:
-
-        (
-            ActiveViewer.query
-            .filter_by(
-                client_id=client_id,
-                page=page,
+            url_for(
+                'admin.admin_viewers'
             )
-            .delete()
         )
 
-        db.session.commit()
-
-    except Exception:
-
-        db.session.rollback()
-
-        flash(
-            'Could not remove viewer.'
+    (
+        ActiveViewer.query
+        .filter_by(
+            client_id=client_id,
+            page=page
         )
+        .delete()
+    )
 
-        return redirect(
-            url_for('admin.admin_viewers')
-        )
+    db.session.commit()
 
     flash(
         'Viewer entry removed'
     )
 
     return redirect(
-        url_for('admin.admin_viewers')
+        url_for(
+            'admin.admin_viewers'
+        )
     )
