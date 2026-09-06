@@ -2,63 +2,127 @@
 
 {% block content %}
 
-<section class="auth-shell">
+<section class="admin-page">
 
-    <div class="auth-card admin-card">
+    <!-- HEADER -->
+    <div class="admin-hero">
+        <div class="admin-hero-symbol">✦</div>
 
-        <p class="eyebrow">Your writing desk</p>
+        <p class="admin-kicker">YOUR WRITING DESK</p>
 
-        <h2>Admin Dashboard</h2>
+        <h1>Admin <span>Dashboard</span></h1>
 
-        <p style="color:#aaa; margin-bottom:25px;">
-            Logged in as administrator.
+        <p class="admin-subtitle">
+            A quiet place to manage the words that live inside
+            <em>Moonlit Marginalia.</em>
         </p>
+
+        <div class="admin-divider">
+            <span></span>
+            ✦
+            <span></span>
+        </div>
+
+        <p class="admin-login-status">
+            ✦ Logged in as administrator
+        </p>
+    </div>
+
+
+    <!-- ADD POEM -->
+    <div class="admin-add-card">
+
+        <div class="admin-card-heading">
+            <div>
+                <p class="admin-label">NEW ENTRY</p>
+                <h2>Add a Poem</h2>
+                <p>
+                    Give another thought a place to stay.
+                </p>
+            </div>
+
+            <div class="admin-card-icon">☾</div>
+        </div>
+
 
         <form
             method="post"
             action="/admin/poem/new"
             enctype="multipart/form-data"
-            class="stack-form"
+            class="admin-form"
         >
 
-            <label>
-                <span>Title</span>
-                <input
-                    name="title"
-                    placeholder="Moonlit Silence"
-                    required
-                >
+            <div class="admin-form-row">
+
+                <label class="admin-field">
+                    <span>TITLE</span>
+                    <input
+                        name="title"
+                        placeholder="Moonlit Silence"
+                        required
+                    >
+                </label>
+
+                <label class="admin-field">
+                    <span>CATEGORY</span>
+                    <input
+                        name="category"
+                        placeholder="Love, grief, memory..."
+                    >
+                </label>
+
+            </div>
+
+
+            <label class="admin-field">
+                <span>POEM TEXT</span>
+
+                <div class="poem-editor">
+                    <span class="editor-mark">“</span>
+
+                    <textarea
+                        name="body"
+                        rows="12"
+                        placeholder="Paste your poem here..."
+                        required
+                    ></textarea>
+
+                    <span class="editor-mark bottom">”</span>
+                </div>
             </label>
 
-            <label>
-                <span>Category</span>
-                <input
-                    name="category"
-                    placeholder="Love, grief, memory..."
-                >
+
+            <label class="admin-field">
+                <span>PROFILE IMAGE</span>
+
+                <div class="file-upload-box">
+
+                    <div class="file-icon">✧</div>
+
+                    <div>
+                        <strong>Choose an image</strong>
+                        <small>
+                            JPG, PNG or WEBP
+                        </small>
+                    </div>
+
+                    <input
+                        type="file"
+                        name="profile_image"
+                        accept="image/*"
+                    >
+
+                </div>
             </label>
 
-            <label>
-                <span>Poem text</span>
-                <textarea
-                    name="body"
-                    rows="10"
-                    placeholder="Paste your poem here..."
-                    required
-                ></textarea>
-            </label>
 
-            <label>
-                <span>Profile image</span>
-                <input
-                    type="file"
-                    name="profile_image"
-                    accept="image/*"
-                >
-            </label>
-
-            <button type="submit">
-                Publish poem
+            <button
+                type="submit"
+                class="admin-publish-btn"
+            >
+                <span>✦</span>
+                PUBLISH POEM
+                <strong>→</strong>
             </button>
 
         </form>
@@ -67,14 +131,122 @@
 
     </div>
 
-</section>
 
-<div style="max-width:1000px; margin:20px auto;">
-    <a href="/admin/viewers">
-        Viewers & Tokens →
-    </a>
-</div>
+    <!-- VIEWERS -->
+    <div class="admin-tools">
 
-<script src="/static/js/admin_offline.js"></script>
+        <a href="/admin/viewers" class="admin-tool-link">
+            <span>✦</span>
+            <div>
+                <strong>Viewers & Tokens</strong>
+                <small>Manage access and activity</small>
+            </div>
+            <b>→</b>
+        </a>
 
-{% endblock %}
+    </div>
+
+
+    <!-- SAVED POEMS -->
+    <section class="admin-section">
+
+        <div class="admin-section-heading">
+            <div>
+                <p class="admin-label">YOUR COLLECTION</p>
+                <h2>Saved Poems</h2>
+            </div>
+
+            <span class="section-symbol">✧</span>
+        </div>
+
+
+        <div class="admin-poem-grid">
+
+            {% for p in poems %}
+
+            <article class="admin-poem-card">
+
+                <div class="poem-card-top">
+                    <span class="poem-number">
+                        {{ loop.index }}
+                    </span>
+
+                    <span class="poem-status">
+                        PUBLISHED
+                    </span>
+                </div>
+
+                <h3>{{ p.title }}</h3>
+
+                <p class="poem-preview">
+                    {{ p.body[:180] }}{% if p.body|length > 180 %}...{% endif %}
+                </p>
+
+                <div class="poem-card-footer">
+
+                    <span>
+                        ✦ Poem
+                    </span>
+
+                    <form
+                        method="post"
+                        action="{{ url_for('admin.admin_delete_poem', poem_id=p.id) }}"
+                        onsubmit="return confirm('Delete this poem?');"
+                    >
+                        <button
+                            type="submit"
+                            class="delete-poem-btn"
+                        >
+                            Delete
+                        </button>
+                    </form>
+
+                </div>
+
+            </article>
+
+            {% else %}
+
+            <article class="admin-empty-card">
+
+                <div>☾</div>
+
+                <h3>No poems yet</h3>
+
+                <p>
+                    Your first poem will appear here.
+                </p>
+
+            </article>
+
+            {% endfor %}
+
+        </div>
+
+    </section>
+
+
+    <!-- COMMUNITY -->
+    <section class="admin-section">
+
+        <div class="admin-section-heading">
+
+            <div>
+                <p class="admin-label">COMMUNITY</p>
+                <h2>Suggestions & Users</h2>
+            </div>
+
+            <span class="section-symbol">♡</span>
+
+        </div>
+
+
+        <div class="admin-community-grid">
+
+
+            <!-- SUGGESTIONS -->
+            <div class="admin-community-card">
+
+                <div class="community-card-heading">
+                    <div>
+                        <span>
