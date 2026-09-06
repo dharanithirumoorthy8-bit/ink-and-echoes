@@ -1,65 +1,150 @@
 {% extends 'base.html' %}
+{% block title %}My Poems - Moonlit Marginalia{% endblock %}
 {% block content %}
-  <div class="page-shell poems-shell">
-    <div class="section-heading centered-heading">
-      <p class="eyebrow center">Collection</p>
-      <h2>Poems</h2>
+  <section class="library-section">
+    <div class="section-heading">
+      <p class="eyebrow">The Collection</p>
+      <h1>MY POEMS</h1>
+      <p class="section-subtitle">A digital sanctuary for verses, late-night musings, and unsaid emotions.</p>
     </div>
 
-    <div class="poems-list">
-      <div class="poems-meta">
-        <p class="muted">Members ever viewed this page: {{ poems_total_views }}</p>
-        <p id="active-viewers" class="muted">Active viewers: —</p>
-      </div
-      >
-      {% for p in poems %}
-        <article class="poem poem-card">
-          <span class="pill">Poem</span>
-          <h3>{{ p.title }}</h3>
-          <div class="body">{{ p.body }}</div>
-        </article>
-      {% else %}
-        <article class="poem poem-card empty-poem">
-          <span class="pill">Poem</span>
-          <h3>Still waiting for the first line</h3>
-          <div class="body">No poems are published yet. Check back soon.</div>
-        </article>
-      {% endfor %}
-    </div>
-  </div>
-{% endblock %}
+    <div class="library-controls">
+      <div class="search-bar">
+        <form method="get" action="/poems" class="search-form">
+          <input 
+            type="text" 
+            name="search" 
+            placeholder="Search by title, keywords, tags..." 
+            value="{{ current_search }}"
+            class="search-input"
+          >
+          <button type="submit" class="search-btn">🔍</button>
+        </form>
+      </div>
 
-{% block scripts %}
+      <div class="filter-controls">
+        <div class="filter-group">
+          <label for="category-filter">Filter by Category:</label>
+          <form method="get" action="/poems" class="filter-form" id="category-form">
+            <select name="category" id="category-filter" onchange="document.getElementById('category-form').submit()">
+              <option value="">All Categories</option>
+              {% for cat in categories %}
+                <option value="{{ cat.id }}" {% if current_category == cat.id|string %}selected{% endif %}>
+                  {{ cat.name }}
+                </option>
+              {% endfor %}
+            </select>
+            {% if current_search %}
+              <input type="hidden" name="search" value="{{ current_search }}">
+            {% endif %}
+            {% if current_sort %}
+              <input type="hidden" name="sort" value="{{ current_sort }}">
+            {% endif %}
+          </form>
+        </div>
+
+        <div class="filter-group">
+          <label for="sort-filter">Sort by:</label>
+          <form method="get" action="/poems" class="filter-form" id="sort-form">
+            <select name="sort" id="sort-filter" onchange="document.getElementById('sort-form').submit()">
+              <option value="newest" {% if current_sort == 'newest' %}selected{% endif %}>Newest First</option>
+              <option value="oldest" {% if current_sort == 'oldest' %}selected{% endif %}>Oldest First</option>
+              <option value="a-z" {% if current_sort == 'a-z' %}selected{% endif %}>A-Z</option>
+            </select>
+            {% if current_search %}
+              <input type="hidden" name="search" value="{{ current_search }}">
+            {% endif %}
+            {% if current_category %}
+              <input type="hidden" name="category" value="{{ current_category }}">
+            {% endif %}
+          </form>
+        </div>
+      </div>
+    </div>
+
+    {% if poems %}
+      <div class="poems-count">
+        <p>Showing {{ poems|length }} {% if poems|length == 1 %}poem{% else %}poems{% endif %}</p>
+      </div>
+
+      <div class="poem-grid">
+        {% for poem in poems %}
+          <article class="poem-card">
+            {% if poem.cover_image %}
+              <div class="poem-card-image">
+                <img src="{{ poem.cover_image }}" alt="{{ poem.title }}">
+              </div>
+            {% endif %}
+            <div class="poem-card-content">
+              <h3>{{ poem.title }}</h3>
+              {% if poem.category_id %}
+                {% set category = poem.category %}
+                <span class="poem-category">{{ category.name if category else 'Uncategorized' }}</span>
+              {% endif %}
+              <p class="poem-excerpt">{{ poem.description or poem.body[:120] }}{% if poem.body|length > 120 %}...{% endif %}</p>
+              <div class="poem-card-meta">
+                <span class="poem-date">{{ poem.created_at.strftime('%b %d, %Y') if poem.created_at else 'Date unknown' }}</span>
+                {% if poem.tags %}
+                  <span class="poem-tags-inline">
+                    {% for tag in poem.get_tags_list()[:2] %}
+                      #{{ tag }}{% if not loop.last %} {% endif %}
+                    {% endfor %}
+                  </span>
+                {% endif %}
+              </div>
+              <div class="poem-card-actions">
+                {% if current_user.is_authenticated %}
+                  <button class="favorite-mini-btn {% if poem.id in user_favorites %}favorited{% endif %}" 
+                          onclick="toggleFavorite({{ poem.id }}, event)">
+                    {% if poem.id in user_favorites %}♥{% else %}♡{% endif %}
+                  </button>
+                {% endif %}
+                <a href="/poem/{{ poem.id }}" class="poem-card-link">Read Poem →</a>
+              </div>
+            </div>
+          </article>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty-state">
+        <p class="empty-state-icon">📖</p>
+        {% if current_search or current_category %}
+          <h2>No verses found in these margins.</h2>
+          <p>Try adjusting your search or filter to find poems.</p>
+          <a href="/poems" class="btn btn-secondary">Clear Filters</a>
+        {% else %}
+          <h2>No verses have been written into these margins yet.</h2>
+          <p>Check back soon for new poems to explore.</p>
+        {% endif %}
+      </div>
+    {% endif %}
+  </section>
+
   <script>
-    (function(){
-      const CLIENT_KEY = 'inkandechoes_viewer_client'
-      let client = localStorage.getItem(CLIENT_KEY)
-      if(!client){ client = Math.random().toString(36).slice(2); localStorage.setItem(CLIENT_KEY, client) }
-
-      async function ping(){
-        try{
-          await fetch('/api/v1/viewers/ping', {
-            method: 'POST', headers: {'Content-Type':'application/json'},
-            body: JSON.stringify({client_id: client, page: 'poems'})
-          })
-        }catch(e){ /* ignore */ }
+    function toggleFavorite(poemId, event) {
+      event.preventDefault();
+      event.stopPropagation();
+      
+      if (!{{ 'true' if current_user.is_authenticated else 'false' }}) {
+        window.location.href = '/login';
+        return;
       }
 
-      async function getActive(){
-        try{
-          const res = await fetch('/api/v1/viewers/poems')
-          if(res.ok){
-            const j = await res.json()
-            const el = document.getElementById('active-viewers')
-            if(el) el.textContent = 'Active viewers: ' + j.count
+      fetch(`/api/v1/favorite/${poemId}`, { method: 'POST' })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            const btn = event.target.closest('.favorite-mini-btn');
+            if (data.favorited) {
+              btn.classList.add('favorited');
+              btn.textContent = '♥';
+            } else {
+              btn.classList.remove('favorited');
+              btn.textContent = '♡';
+            }
           }
-        }catch(e){ }
-      }
-
-      // initial
-      ping(); getActive();
-      setInterval(ping, 20000);
-      setInterval(getActive, 5000);
-    })();
+        })
+        .catch(error => console.error('Error:', error));
+    }
   </script>
 {% endblock %}
