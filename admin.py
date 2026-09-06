@@ -3,7 +3,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
 
-from models import Category, Poem, db
+from models import Category, Poem, Favorite, db
 from models import Suggestion, User, ApiToken, ActiveViewer
 
 admin_bp = Blueprint('admin', __name__)
@@ -33,15 +33,32 @@ def admin_required(f):
 @login_required
 @admin_required
 def admin_index():
-    poems = Poem.query.order_by(Poem.created_at.desc()).all()
+
+    poems = Poem.query.order_by(
+        Poem.created_at.desc()
+    ).all()
+
     categories = Category.query.all()
-    users = User.query.order_by(User.created_at.desc()).all()
-    suggestions = Suggestion.query.order_by(Suggestion.created_at.desc()).all()
-    total_poems = Poem.query.filter_by(published=True).count()
-    total_favorites = db.session.query(db.func.count(db.distinct(db.column('favorite.poem_id')))).from_statement(
-        db.text('SELECT COUNT(DISTINCT poem_id) FROM favorite')
-    ).scalar() or 0
-    
+
+    users = User.query.order_by(
+        User.created_at.desc()
+    ).all()
+
+    suggestions = Suggestion.query.order_by(
+        Suggestion.created_at.desc()
+    ).all()
+
+    total_poems = (
+        Poem.query
+        .filter_by(published=True)
+        .count()
+    )
+
+    try:
+        total_favorites = Favorite.query.count()
+    except Exception:
+        total_favorites = 0
+
     return render_template(
         'admin.html',
         poems=poems,
