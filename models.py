@@ -28,19 +28,46 @@ class Category(db.Model):
     name = db.Column(db.String(80), unique=True, nullable=False)
 
 
+class Tag(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(80), unique=True, nullable=False)
+
+
 class Poem(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(200))
     body = db.Column(db.Text)
+    description = db.Column(db.String(500), nullable=True)  # Short excerpt
     published = db.Column(db.Boolean, default=True)
+    is_featured = db.Column(db.Boolean, default=False)  # Featured poem flag
     category_id = db.Column(db.Integer, db.ForeignKey('category.id'), nullable=True)
+    cover_image = db.Column(db.String(255), nullable=True)  # Path to cover image
+    tags = db.Column(db.String(500), nullable=True)  # Comma-separated tags
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    def get_tags_list(self):
+        """Return tags as a list."""
+        if not self.tags:
+            return []
+        return [tag.strip() for tag in self.tags.split(',') if tag.strip()]
+
+    def set_tags_list(self, tags_list):
+        """Set tags from a list."""
+        if isinstance(tags_list, list):
+            self.tags = ','.join(tags_list)
+        else:
+            self.tags = tags_list
 
 
 class Favorite(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    poem_id = db.Column(db.Integer, db.ForeignKey('poem.id'))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    poem_id = db.Column(db.Integer, db.ForeignKey('poem.id'), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Prevent duplicate favorites for the same user-poem pair
+    __table_args__ = (db.UniqueConstraint('user_id', 'poem_id', name='unique_user_poem_favorite'),)
 
 
 class PageView(db.Model):
