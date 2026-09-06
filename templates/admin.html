@@ -5,8 +5,7 @@
 <style>
 
 /* =========================================================
-   MOONLIT MARGINALIA
-   PREMIUM ADMIN WRITING DESK
+   MOONLIT MARGINALIA — PREMIUM ADMIN DASHBOARD
    ========================================================= */
 
 .admin-page {
@@ -59,17 +58,17 @@
     background: rgba(0,212,255,.045);
 }
 
-
 /* =========================================================
    FLOATING STARS
    ========================================================= */
 
-.admin-page .moon-star {
+.moon-star {
     position: absolute;
     color: #b997dc;
     opacity: .12;
     pointer-events: none;
     animation: adminFloat 6s ease-in-out infinite;
+    z-index: 0;
 }
 
 .moon-star.one {
@@ -108,7 +107,6 @@
         transform: translateY(-12px);
     }
 }
-
 
 /* =========================================================
    HERO
@@ -316,7 +314,6 @@
     }
 }
 
-
 /* =========================================================
    STATS
    ========================================================= */
@@ -325,7 +322,6 @@
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 16px;
-
     margin-bottom: 30px;
 }
 
@@ -400,9 +396,8 @@
     font-weight: 400;
 }
 
-
 /* =========================================================
-   ADD POEM CARD
+   ADD POEM
    ========================================================= */
 
 .admin-add-card {
@@ -476,7 +471,6 @@
     font-size: 13px;
 }
 
-
 /* =========================================================
    FORM
    ========================================================= */
@@ -514,6 +508,7 @@
 .admin-field textarea,
 .admin-field select {
     width: 100%;
+    box-sizing: border-box;
 
     border: 1px solid rgba(255,255,255,.085);
     border-radius: 13px;
@@ -522,8 +517,7 @@
 
     padding: 14px 16px;
 
-    background:
-        rgba(0,0,0,.24);
+    background: rgba(0,0,0,.24);
 
     color: #eeeaf1;
 
@@ -546,7 +540,6 @@
 
 .admin-field textarea#body {
     min-height: 280px;
-
     font-size: 15px;
 }
 
@@ -578,7 +571,6 @@
     color: #eeeaf1;
 }
 
-
 /* =========================================================
    FILE INPUT
    ========================================================= */
@@ -607,7 +599,6 @@
 
     cursor: pointer;
 }
-
 
 /* =========================================================
    CHECKBOX
@@ -640,7 +631,6 @@
 
     cursor: pointer;
 }
-
 
 /* =========================================================
    SUBMIT
@@ -698,6 +688,9 @@
     transform: translateY(-1px);
 }
 
+.admin-submit:disabled {
+    cursor: wait;
+}
 
 /* =========================================================
    NOTICE
@@ -721,7 +714,6 @@
 
     font-size: 11px;
 }
-
 
 /* =========================================================
    SAVED POEMS
@@ -914,7 +906,6 @@
     border-color: rgba(255,215,100,.25);
 }
 
-
 /* =========================================================
    SECONDARY PANELS
    ========================================================= */
@@ -1019,7 +1010,6 @@
     font-size: 10px;
 }
 
-
 /* =========================================================
    VIEWERS
    ========================================================= */
@@ -1057,7 +1047,6 @@
     transform: translateX(3px);
 }
 
-
 /* =========================================================
    SCROLLBAR
    ========================================================= */
@@ -1074,7 +1063,6 @@
     background: rgba(159,131,199,.22);
     border-radius: 10px;
 }
-
 
 /* =========================================================
    MOBILE
@@ -1113,7 +1101,6 @@
         padding: 27px;
     }
 }
-
 
 @media (max-width: 560px) {
 
@@ -1161,7 +1148,7 @@
         width: 100%;
     }
 
-    .admin-page .moon-star {
+    .moon-star {
         display: none;
     }
 }
@@ -1170,7 +1157,7 @@
 
 
 <!-- =========================================================
-     DECORATIVE MOONLIT ELEMENTS
+     DECORATIVE ELEMENTS
      ========================================================= -->
 
 <span class="moon-star one">✦</span>
@@ -1180,7 +1167,6 @@
 
 
 <section class="admin-page">
-
 
     <!-- =====================================================
          HERO
@@ -1299,7 +1285,6 @@
 
             <div class="admin-form-grid">
 
-
                 <!-- TITLE -->
 
                 <div class="admin-field full">
@@ -1312,8 +1297,8 @@
                         id="title"
                         name="title"
                         type="text"
-                        placeholder="Enter the title of your poem..."
                         maxlength="200"
+                        placeholder="Enter the title of your poem..."
                         required
                     >
 
@@ -1400,6 +1385,7 @@
                         id="body"
                         name="body"
                         rows="14"
+                        maxlength="10000"
                         placeholder="Let the words fall here..."
                         required
                     ></textarea>
@@ -1447,7 +1433,7 @@
             </div>
 
 
-            <!-- BUTTON -->
+            <!-- SUBMIT -->
 
             <div class="admin-actions">
 
@@ -1465,9 +1451,12 @@
 
         <div class="offline-sync-notice">
 
-            ✦
-            Your poem is saved to the Moonlit Marginalia
-            collection after successful publishing.
+            <span>✦</span>
+
+            <span>
+                Your poem is saved to the Moonlit Marginalia
+                collection after successful publishing.
+            </span>
 
         </div>
 
@@ -1508,7 +1497,6 @@
             {% for p in poems %}
 
             <article class="admin-poem-card">
-
 
                 <div class="admin-poem-top">
 
@@ -1567,7 +1555,6 @@
 
                 <div class="admin-poem-actions">
 
-
                     <!-- EDIT -->
 
                     <a
@@ -1602,7 +1589,7 @@
                     <a
                         href="/poem/{{ p.id }}"
                         target="_blank"
-                        rel="noopener"
+                        rel="noopener noreferrer"
                         class="admin-action-btn"
                     >
                         View
@@ -1775,6 +1762,11 @@
 {% endblock %}
 
 
+<!-- =========================================================
+     SCRIPTS
+     IMPORTANT: ONLY ONE scripts BLOCK
+     ========================================================= -->
+
 {% block scripts %}
 
 <script src="{{ url_for('static', filename='js/admin_offline.js') }}"></script>
@@ -1782,133 +1774,26 @@
 <script>
 document.addEventListener("DOMContentLoaded", function () {
 
+    /* =====================================================
+       ELEMENTS
+       ===================================================== */
+
     const body = document.getElementById("body");
     const description = document.getElementById("description");
     const cover = document.getElementById("cover_image");
-
-    /* -----------------------------------------
-       WORD / CHARACTER COUNTER
-       ----------------------------------------- */
-
-    function addCounter(element, limit) {
-
-        if (!element) return;
-
-        const counter = document.createElement("small");
-
-        counter.style.cssText = `
-            text-align:right;
-            color:#5f6068;
-            font-size:10px;
-            margin-top:2px;
-        `;
-
-        element.parentElement.appendChild(counter);
-
-        function update() {
-
-            const length = element.value.length;
-
-            counter.textContent =
-                length + " / " + limit;
-
-            if (length > limit * .9) {
-                counter.style.color = "#c9a96e";
-            } else {
-                counter.style.color = "#5f6068";
-            }
-        }
-
-        element.addEventListener("input", update);
-
-        update();
-    }
-
-    addCounter(body, 10000);
-    addCounter(description, 1000);
-
-
-    /* -----------------------------------------
-       IMAGE VALIDATION
-       ----------------------------------------- */
-
-    if (cover) {
-
-        cover.addEventListener("change", function () {
-
-            const file = this.files[0];
-
-            if (!file) return;
-
-            const allowed = [
-                "image/jpeg",
-                "image/png",
-                "image/webp",
-                "image/gif"
-            ];
-
-            if (!allowed.includes(file.type)) {
-
-                alert(
-                    "Please choose a JPG, PNG, WEBP or GIF image."
-                );
-
-                this.value = "";
-                return;
-            }
-
-            if (file.size > 8 * 1024 * 1024) {
-
-                alert(
-                    "Image size should be below 8 MB."
-                );
-
-                this.value = "";
-                return;
-            }
-
-        });
-
-    }
-
-
-    /* -----------------------------------------
-       SUBMIT FEEDBACK
-       ----------------------------------------- */
-
     const form = document.querySelector(".admin-form");
     const submitButton = document.querySelector(".admin-submit");
 
-    if (form && submitButton) {
 
-        form.addEventListener("submit", function () {
-
-            submitButton.disabled = true;
-
-            submitButton.style.opacity = ".7";
-
-            submitButton.innerHTML =
-                "✦ Publishing...";
-
-        });
-
-    }
-
-});
-<script>
-document.addEventListener("DOMContentLoaded", function () {
-
-    const body = document.getElementById("body");
-    const description = document.getElementById("description");
-    const cover = document.getElementById("cover_image");
-
-    /* -----------------------------------------
+    /* =====================================================
        CHARACTER COUNTER
-       ----------------------------------------- */
+       ===================================================== */
 
     function addCounter(element, limit) {
 
-        if (!element) return;
+        if (!element) {
+            return;
+        }
 
         const counter = document.createElement("small");
 
@@ -1922,92 +1807,157 @@ document.addEventListener("DOMContentLoaded", function () {
 
         element.parentElement.appendChild(counter);
 
-        function update() {
+
+        function updateCounter() {
 
             const length = element.value.length;
 
             counter.textContent =
                 length + " / " + limit;
 
-            if (length > limit * 0.9) {
-                counter.style.color = "#c9a96e";
+
+            if (length >= limit * 0.9) {
+
+                counter.style.color =
+                    "#c9a96e";
+
             } else {
-                counter.style.color = "#5f6068";
+
+                counter.style.color =
+                    "#5f6068";
             }
         }
 
-        element.addEventListener("input", update);
 
-        update();
+        element.addEventListener(
+            "input",
+            updateCounter
+        );
+
+
+        updateCounter();
     }
+
 
     addCounter(body, 10000);
     addCounter(description, 1000);
 
 
-    /* -----------------------------------------
+    /* =====================================================
        IMAGE VALIDATION
-       ----------------------------------------- */
+       ===================================================== */
 
     if (cover) {
 
-        cover.addEventListener("change", function () {
+        cover.addEventListener(
+            "change",
+            function () {
 
-            const file = this.files[0];
+                const file = this.files[0];
 
-            if (!file) return;
+                if (!file) {
+                    return;
+                }
 
-            const allowed = [
-                "image/jpeg",
-                "image/png",
-                "image/webp",
-                "image/gif"
-            ];
 
-            if (!allowed.includes(file.type)) {
+                const allowedTypes = [
+                    "image/jpeg",
+                    "image/png",
+                    "image/webp",
+                    "image/gif"
+                ];
 
-                alert(
-                    "Please choose a JPG, PNG, WEBP or GIF image."
-                );
 
-                this.value = "";
-                return;
+                if (!allowedTypes.includes(file.type)) {
+
+                    alert(
+                        "Please choose a JPG, PNG, WEBP or GIF image."
+                    );
+
+                    this.value = "";
+
+                    return;
+                }
+
+
+                const maxSize =
+                    8 * 1024 * 1024;
+
+
+                if (file.size > maxSize) {
+
+                    alert(
+                        "Image size should be below 8 MB."
+                    );
+
+                    this.value = "";
+
+                    return;
+                }
+
             }
-
-            if (file.size > 8 * 1024 * 1024) {
-
-                alert(
-                    "Image size should be below 8 MB."
-                );
-
-                this.value = "";
-                return;
-            }
-
-        });
+        );
 
     }
 
 
-    /* -----------------------------------------
-       SUBMIT FEEDBACK
-       ----------------------------------------- */
-
-    const form = document.querySelector(".admin-form");
-    const submitButton = document.querySelector(".admin-submit");
+    /* =====================================================
+       FORM SUBMIT FEEDBACK
+       ===================================================== */
 
     if (form && submitButton) {
 
-        form.addEventListener("submit", function () {
+        form.addEventListener(
+            "submit",
+            function () {
 
-            submitButton.disabled = true;
+                submitButton.disabled = true;
 
-            submitButton.style.opacity = "0.7";
+                submitButton.style.opacity = "0.7";
 
-            submitButton.innerHTML =
-                "✦ Publishing...";
+                submitButton.innerHTML =
+                    "✦ Publishing...";
 
-        });
+            }
+        );
+
+    }
+
+
+    /* =====================================================
+       PREVENT ACCIDENTAL EMPTY BODY
+       ===================================================== */
+
+    if (form && body) {
+
+        form.addEventListener(
+            "submit",
+            function (event) {
+
+                if (!body.value.trim()) {
+
+                    event.preventDefault();
+
+                    alert(
+                        "Please enter your poem before publishing."
+                    );
+
+                    body.focus();
+
+                    if (submitButton) {
+
+                        submitButton.disabled = false;
+
+                        submitButton.style.opacity = "1";
+
+                        submitButton.innerHTML =
+                            "✦ Publish Poem →";
+                    }
+
+                }
+
+            }
+        );
 
     }
 
