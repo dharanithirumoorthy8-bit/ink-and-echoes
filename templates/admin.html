@@ -2,543 +2,461 @@
 
 {% block content %}
 
-<section class="admin-page">
-
-    <!-- =====================================================
-         ADMIN HEADER
-         ===================================================== -->
-    <div class="admin-hero">
-
-        <div class="admin-hero-symbol">✦</div>
-
-        <p class="admin-kicker">
-            YOUR WRITING DESK
-        </p>
-
-        <h1>
-            Admin <span>Dashboard</span>
-        </h1>
-
-        <p class="admin-subtitle">
-            A quiet place to manage the words that live inside
-            <em>Moonlit Marginalia.</em>
-        </p>
-
-        <div class="admin-divider">
-            <span></span>
-            ✦
-            <span></span>
-        </div>
-
-        <p class="admin-login-status">
-            ✦ Logged in as administrator
-        </p>
-
-    </div>
-
-
-    <!-- =====================================================
-         ADD NEW POEM
-         ===================================================== -->
-    <div class="admin-add-card">
-
-        <div class="admin-card-heading">
-
-            <div>
-                <p class="admin-label">
-                    NEW ENTRY
-                </p>
-
-                <h2>
-                    Add a Poem
-                </h2>
-
-                <p>
-                    Give another thought a place to stay.
-                </p>
-            </div>
-
-            <div class="admin-card-icon">
-                ☾
-            </div>
-
-        </div>
-
-
-        <form
-            method="post"
-            action="/admin/poem/new"
-            enctype="multipart/form-data"
-            class="admin-form"
-        >
-
-            <!-- TITLE + CATEGORY -->
-            <div class="admin-form-row">
-
-                <label class="admin-field">
-
-                    <span>
-                        TITLE
-                    </span>
-
-                    <input
-                        type="text"
-                        name="title"
-                        placeholder="Moonlit Silence"
-                        required
-                    >
-
-                </label>
-
-
-                <label class="admin-field">
-
-                    <span>
-                        CATEGORY
-                    </span>
-
-                    <input
-                        type="text"
-                        name="category"
-                        placeholder="Love, grief, memory..."
-                    >
-
-                </label>
-
-            </div>
-
-
-            <!-- POEM TEXT -->
-            <label class="admin-field">
-
-                <span>
-                    POEM TEXT
-                </span>
-
-                <div class="poem-editor">
-
-                    <span class="editor-mark">
-                        “
-                    </span>
-
-                    <textarea
-                        name="body"
-                        rows="12"
-                        placeholder="Paste your poem here..."
-                        required
-                    ></textarea>
-
-                    <span class="editor-mark bottom">
-                        ”
-                    </span>
-
-                </div>
-
-            </label>
-
-
-            <!-- PROFILE IMAGE -->
-            <label class="admin-field">
-
-                <span>
-                    PROFILE IMAGE
-                </span>
-
-                <div class="file-upload-box">
-
-                    <div class="file-icon">
-                        ✧
-                    </div>
-
-                    <div class="file-upload-text">
-
-                        <strong>
-                            Choose an image
-                        </strong>
-
-                        <small>
-                            JPG, PNG or WEBP
-                        </small>
-
-                    </div>
-
-                    <input
-                        type="file"
-                        name="profile_image"
-                        accept="image/*"
-                    >
-
-                </div>
-
-            </label>
-
-
-            <!-- PUBLISH -->
-            <button
-                type="submit"
-                class="admin-publish-btn"
-            >
-
-                <span>
-                    ✦
-                </span>
-
-                PUBLISH POEM
-
-                <strong>
-                    →
-                </strong>
-
-            </button>
-
-        </form>
-
-
-        <p
-            id="offline-sync-notice"
-            class="muted"
-        ></p>
-
-    </div>
-
-
-    <!-- =====================================================
-         VIEWERS & TOKENS
-         ===================================================== -->
-    <div class="admin-tools">
-
-        <a
-            href="/admin/viewers"
-            class="admin-tool-link"
-        >
-
-            <span>
-                ✦
-            </span>
-
-            <div>
-
-                <strong>
-                    Viewers & Tokens
-                </strong>
-
-                <small>
-                    Manage access and activity
-                </small>
-
-            </div>
-
-            <b>
-                →
-            </b>
-
-        </a>
-
-    </div>
-
-
-    <!-- =====================================================
-         SAVED POEMS
-         ===================================================== -->
-    <section class="admin-section">
-
-        <div class="admin-section-heading">
-
-            <div>
-
-                <p class="admin-label">
-                    YOUR COLLECTION
-                </p>
-
-                <h2>
-                    Saved Poems
-                </h2>
-
-            </div>
-
-            <span class="section-symbol">
-                ✧
-            </span>
-
-        </div>
-
-
-        <div class="admin-poem-grid">
-
-            {% for p in poems %}
-
-            <article class="admin-poem-card">
-
-                <div class="poem-card-top">
-
-                    <span class="poem-number">
-                        {{ loop.index }}
-                    </span>
-
-                    <span class="poem-status">
-                        PUBLISHED
-                    </span>
-
-                </div>
-
-
-                <h3>
-                    {{ p.title }}
-                </h3>
-
-
-                <p class="poem-preview">
-                    {{ p.body[:180] }}{% if p.body|length > 180 %}...{% endif %}
-                </p>
-
-
-                <div class="poem-card-footer">
-
-                    <span>
-                        ✦ Poem
-                    </span>
-
-
-                    <form
-                        method="post"
-                        action="{{ url_for('admin.admin_delete_poem', poem_id=p.id) }}"
-                        onsubmit="return confirm('Delete this poem?');"
-                    >
-
-                        <button
-                            type="submit"
-                            class="delete-poem-btn"
-                        >
-                            Delete
-                        </button>
-
-                    </form>
-
-                </div>
-
-            </article>
-
-
-            {% else %}
-
-            <article class="admin-empty-card">
-
-                <div>
-                    ☾
-                </div>
-
-                <h3>
-                    No poems yet
-                </h3>
-
-                <p>
-                    Your first poem will appear here.
-                </p>
-
-            </article>
-
-            {% endfor %}
-
-        </div>
-
-    </section>
-
-
-    <!-- =====================================================
-         COMMUNITY
-         ===================================================== -->
-    <section class="admin-section">
-
-        <div class="admin-section-heading">
-
-            <div>
-
-                <p class="admin-label">
-                    COMMUNITY
-                </p>
-
-                <h2>
-                    Suggestions & Users
-                </h2>
-
-            </div>
-
-            <span class="section-symbol">
-                ♡
-            </span>
-
-        </div>
-
-
-        <div class="admin-community-grid">
-
-
-            <!-- =================================================
-                 SUGGESTIONS
-                 ================================================= -->
-            <div class="admin-community-card">
-
-                <div class="community-card-heading">
-
-                    <div>
-
-                        <span>
-                            ✧
-                        </span>
-
-                        <h3>
-                            Suggestions
-                        </h3>
-
-                    </div>
-
-                    <small>
-                        {{ suggestions|length }}
-                    </small>
-
-                </div>
-
-
-                <div class="suggestion-list">
-
-                    {% for s in suggestions %}
-
-                    <div class="admin-suggestion">
-
-                        <p class="suggestion-meta">
-
-                            {% if s.user_id %}
-
-                                User ID {{ s.user_id }}
-
-                            {% else %}
-
-                                Anonymous
-
-                            {% endif %}
-
-
-                            {% if s.created_at %}
-
-                                · {{ s.created_at.strftime('%Y-%m-%d') }}
-
-                            {% endif %}
-
-                        </p>
-
-
-                        <p class="suggestion-message">
-                            {{ s.message }}
-                        </p>
-
-                    </div>
-
-
-                    {% else %}
-
-                    <div class="admin-empty-small">
-
-                        <span>
-                            ☾
-                        </span>
-
-                        <p>
-                            No suggestions yet.
-                        </p>
-
-                    </div>
-
-                    {% endfor %}
-
-                </div>
-
-            </div>
-
-
-            <!-- =================================================
-                 REGISTERED USERS
-                 ================================================= -->
-            <div class="admin-community-card">
-
-                <div class="community-card-heading">
-
-                    <div>
-
-                        <span>
-                            ◇
-                        </span>
-
-                        <h3>
-                            Registered Users
-                        </h3>
-
-                    </div>
-
-                    <small>
-                        {{ users|length }}
-                    </small>
-
-                </div>
-
-
-                <div class="user-list">
-
-                    {% for u in users %}
-
-                    <div class="admin-user">
-
-                        <div class="user-avatar">
-
-                            {{ u.username[0]|upper }}
-
-                        </div>
-
-
-                        <div>
-
-                            <strong>
-                                {{ u.username }}
-                            </strong>
-
-                            <small>
-                                {{ u.email }}
-                            </small>
-
-                        </div>
-
-                    </div>
-
-
-                    {% else %}
-
-                    <div class="admin-empty-small">
-
-                        <span>
-                            ◇
-                        </span>
-
-                        <p>
-                            No users yet.
-                        </p>
-
-                    </div>
-
-                    {% endfor %}
-
-                </div>
-
-            </div>
-
-        </div>
-
-    </section>
-
-</section>
-
-
-<!-- OFFLINE SYNC -->
-<script src="/static/js/admin_offline.js"></script>
-
-
-<!-- IMPORTANT: CLOSE JINJA CONTENT BLOCK -->
-{% endblock %}
+<style>
+
+/* =========================================================
+   MOONLIT MARGINALIA — ADMIN DASHBOARD
+   ========================================================= */
+
+.admin-page {
+    width: min(1180px, calc(100% - 40px));
+    margin: 0 auto;
+    padding: 65px 0 100px;
+    color: #e8e8ed;
+}
+
+
+/* ================= HEADER ================= */
+
+.admin-hero {
+    text-align: center;
+    margin-bottom: 55px;
+}
+
+.admin-hero-symbol {
+    color: #00d4ff;
+    font-size: 26px;
+    margin-bottom: 12px;
+}
+
+.admin-kicker {
+    color: #00d4ff;
+    font-size: 11px;
+    letter-spacing: 3px;
+    font-weight: 700;
+    margin-bottom: 10px;
+}
+
+.admin-hero h1 {
+    margin: 0;
+    font-family: Georgia, serif;
+    font-size: clamp(38px, 6vw, 64px);
+    line-height: 1.1;
+    color: #eeeeee;
+}
+
+.admin-hero h1 span {
+    color: #8c5bc4;
+}
+
+.admin-subtitle {
+    max-width: 620px;
+    margin: 18px auto 0;
+    color: #929baa;
+    font-size: 15px;
+    line-height: 1.7;
+}
+
+.admin-divider {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    margin: 24px 0;
+    color: #8c5bc4;
+}
+
+.admin-divider span {
+    width: 70px;
+    height: 1px;
+    background: #2a3b55;
+}
+
+.admin-login-status {
+    color: #8993a3;
+    font-size: 13px;
+}
+
+
+/* ================= ADD POEM CARD ================= */
+
+.admin-add-card {
+    background:
+        linear-gradient(
+            145deg,
+            rgba(28, 43, 70, .92),
+            rgba(13, 18, 26, .97)
+        );
+
+    border: 1px solid #2d4261;
+    border-radius: 22px;
+    padding: 38px;
+    box-shadow: 0 25px 70px rgba(0,0,0,.35);
+    margin-bottom: 28px;
+}
+
+.admin-card-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    margin-bottom: 32px;
+}
+
+.admin-label {
+    margin: 0 0 6px;
+    color: #00d4ff;
+    font-size: 10px;
+    letter-spacing: 2.5px;
+    font-weight: 700;
+}
+
+.admin-card-heading h2 {
+    margin: 0;
+    font-family: Georgia, serif;
+    font-size: 30px;
+    color: #f1f1f1;
+}
+
+.admin-card-heading p:last-child {
+    margin-top: 7px;
+    color: #8994a4;
+    font-size: 14px;
+}
+
+.admin-card-icon {
+    width: 62px;
+    height: 62px;
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    color: #00d4ff;
+    font-size: 28px;
+    background: rgba(0,212,255,.06);
+    border: 1px solid rgba(0,212,255,.22);
+}
+
+
+/* ================= FORM ================= */
+
+.admin-form {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.admin-form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.admin-field {
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+}
+
+.admin-field > span {
+    color: #aab3c1;
+    font-size: 10px;
+    letter-spacing: 2px;
+    font-weight: 700;
+}
+
+.admin-field input,
+.admin-field textarea {
+    width: 100%;
+    box-sizing: border-box;
+    border: 1px solid #2d405d;
+    border-radius: 11px;
+    background: rgba(5,9,15,.72);
+    color: #eeeeee;
+    padding: 14px 16px;
+    font-family: Georgia, serif;
+    font-size: 15px;
+    outline: none;
+    transition: .25s ease;
+}
+
+.admin-field input::placeholder,
+.admin-field textarea::placeholder {
+    color: #596475;
+}
+
+.admin-field input:focus,
+.admin-field textarea:focus {
+    border-color: #8055b7;
+    box-shadow: 0 0 0 3px rgba(128,85,183,.12);
+}
+
+.admin-field textarea {
+    min-height: 280px;
+    resize: vertical;
+    line-height: 1.85;
+}
+
+
+/* ================= POEM EDITOR ================= */
+
+.poem-editor {
+    position: relative;
+}
+
+.poem-editor textarea {
+    padding: 35px 48px;
+}
+
+.editor-mark {
+    position: absolute;
+    left: 17px;
+    top: 8px;
+    color: #7045a4;
+    font-family: Georgia, serif;
+    font-size: 38px;
+    pointer-events: none;
+    z-index: 2;
+}
+
+.editor-mark.bottom {
+    left: auto;
+    right: 17px;
+    top: auto;
+    bottom: -3px;
+}
+
+
+/* ================= IMAGE UPLOAD ================= */
+
+.file-upload-box {
+    min-height: 80px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 14px 17px;
+    border: 1px dashed #3a4d69;
+    border-radius: 12px;
+    background: rgba(5,9,15,.42);
+}
+
+.file-icon {
+    width: 45px;
+    height: 45px;
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    border-radius: 10px;
+    background: rgba(107,63,160,.14);
+    color: #a172d1;
+    font-size: 21px;
+}
+
+.file-upload-text {
+    flex: 1;
+}
+
+.file-upload-text strong {
+    display: block;
+    color: #e6e6e8;
+    font-size: 14px;
+}
+
+.file-upload-text small {
+    display: block;
+    color: #697587;
+    margin-top: 4px;
+}
+
+
+/* ================= PUBLISH ================= */
+
+.admin-publish-btn {
+    width: 100%;
+    border: 0;
+    border-radius: 11px;
+    padding: 16px 20px;
+    background: linear-gradient(135deg,#7042a6,#50317b);
+    color: white;
+    font-family: Georgia, serif;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    cursor: pointer;
+    transition: .25s ease;
+}
+
+.admin-publish-btn span {
+    margin-right: 8px;
+}
+
+.admin-publish-btn strong {
+    float: right;
+    font-size: 19px;
+}
+
+.admin-publish-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 30px rgba(107,63,160,.3);
+}
+
+
+/* ================= VIEWERS ================= */
+
+.admin-tools {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 70px;
+}
+
+.admin-tool-link {
+    width: min(100%, 500px);
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 17px 21px;
+    box-sizing: border-box;
+    border: 1px solid #2c405d;
+    border-radius: 13px;
+    background: rgba(20,29,44,.7);
+    color: #ddd;
+    text-decoration: none;
+    transition: .25s ease;
+}
+
+.admin-tool-link > span {
+    color: #00d4ff;
+    font-size: 19px;
+}
+
+.admin-tool-link div {
+    flex: 1;
+}
+
+.admin-tool-link strong {
+    display: block;
+    color: #e5e5e7;
+    font-size: 14px;
+}
+
+.admin-tool-link small {
+    display: block;
+    color: #6e7a8c;
+    margin-top: 3px;
+}
+
+.admin-tool-link b {
+    color: #8b5cc7;
+    font-size: 20px;
+}
+
+.admin-tool-link:hover {
+    transform: translateY(-2px);
+    border-color: #714aa0;
+}
+
+
+/* ================= SECTIONS ================= */
+
+.admin-section {
+    margin-bottom: 75px;
+}
+
+.admin-section-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+}
+
+.admin-section-heading h2 {
+    margin: 4px 0 0;
+    color: #eeeeee;
+    font-family: Georgia, serif;
+    font-size: 30px;
+}
+
+.section-symbol {
+    color: #8055b7;
+    font-size: 28px;
+}
+
+
+/* ================= POEMS ================= */
+
+.admin-poem-grid {
+    display: grid;
+    grid-template-columns: repeat(3,1fr);
+    gap: 20px;
+}
+
+.admin-poem-card {
+    padding: 23px;
+    border: 1px solid #293c58;
+    border-radius: 16px;
+    background: rgba(18,25,36,.82);
+    transition: .25s ease;
+}
+
+.admin-poem-card:hover {
+    transform: translateY(-4px);
+    border-color: #65458e;
+    box-shadow: 0 15px 35px rgba(0,0,0,.22);
+}
+
+.poem-card-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 23px;
+}
+
+.poem-number {
+    color: #566477;
+    font-size: 12px;
+}
+
+.poem-status {
+    color: #00d4ff;
+    font-size: 9px;
+    letter-spacing: 1.5px;
+}
+
+.admin-poem-card h3 {
+    margin: 0 0 11px;
+    color: #eeeeee;
+    font-family: Georgia, serif;
+    font-size: 21px;
+}
+
+.poem-preview {
+    min-height: 72px;
+    margin: 0;
+    color: #8994a4;
+    font-size: 13px;
+    line-height: 1.7;
+}
+
+.poem-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid #243248;
+}
+
+.poem-card-footer > span {
+    color: #69778a;
+    font-size: 11px;
+}
+
+.delete-poem-btn {
+    border: 1px solid rgba(244,67,54,.28);
+    border-radius: 7px;
+    padding: 6px 11px;
+    background: rgba(244,67,54,.05);
+    color: #ef7770;
+    cursor: pointer;
+    font
