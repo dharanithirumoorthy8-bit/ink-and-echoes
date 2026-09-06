@@ -83,12 +83,23 @@ def create_app():
     @app.context_processor
     def inject_site_stats():
         try:
-            from models import PageView
+            from models import PageView, Poem, Category, Favorite
             pv = PageView.query.filter_by(page='poems').first()
             count = pv.count if pv else 0
+            total_poems = Poem.query.filter_by(published=True).count()
+            total_categories = Category.query.count()
+            total_favorites = Favorite.query.count()
         except Exception:
             count = 0
-        return {'poems_total_views': count}
+            total_poems = 0
+            total_categories = 0
+            total_favorites = 0
+        return {
+            'poems_total_views': count,
+            'total_poems': total_poems,
+            'total_categories': total_categories,
+            'total_favorites': total_favorites,
+        }
 
     @app.cli.command('init-db')
     def init_db():
@@ -158,7 +169,7 @@ def create_app():
 
     @app.route('/')
     def index():
-        from models import Poem, PageView
+        from models import Poem, PageView, Category
 
         page_view = PageView.query.filter_by(page='home').first()
         if page_view is None:
@@ -175,6 +186,13 @@ def create_app():
         }
         latest_poem = Poem.query.filter_by(published=True).order_by(Poem.created_at.desc()).first()
         has_new_poem = bool(latest_poem and latest_poem.created_at and (datetime.utcnow() - latest_poem.created_at).days <= 7)
+        
+        # Get featured poem
+        featured_poem = Poem.query.filter_by(published=True, is_featured=True).first()
+        
+        # Get categories for collection section
+        categories = Category.query.all()
+        
         return render_template(
             'index.html',
             poems=poems,
@@ -182,11 +200,14 @@ def create_app():
             recent_poem_ids=recent_poem_ids,
             latest_poem=latest_poem,
             has_new_poem=has_new_poem,
+            featured_poem=featured_poem,
+            categories=categories,
         )
 
     @app.route('/poems')
     def poems():
-        from models import Poem, PageView
+        from models import Poem, PageView, Category
+        
         # increment poems page view counter
         page_view = PageView.query.filter_by(page='poems').first()
         if page_view is None:
@@ -196,14 +217,133 @@ def create_app():
             page_view.count += 1
         db.session.commit()
 
-        poems = Poem.query.filter_by(published=True).order_by(Poem.created_at.desc()).all()
-        return render_template('poems.html', poems=poems)
+        # Get filter, search, and sort parameters
+        category_filter = request.args.get('category', '').strip()
+        search_query = request.args.get('search', '').strip()
+        sort_by = request.args.get('sort', 'newest')  # newest, oldest, a-z
+
+        # Base query
+        query = Poem.query.filter_by(published=True)
+
+        # Apply category filter
+        if category_filter and category_filter != 'all':
+            query = query.filter_by(category_id=int(category_filter))
+
+        # Apply search
+        if search_query:
+            search_pattern = f'%{search_query}%'
+            query = query.filter(
+                (Poem.title.ilike(search_pattern)) |
+                (Poem.body.ilike(search_pattern)) |
+                (Poem.description.ilike(search_pattern))
+            )
+
+        # Apply sorting
+        if sort_by == 'oldest':
+            query = query.order_by(Poem.created_at.asc())
+        elif sort_by == 'a-z':
+            query = query.order_by(Poem.title.asc())
+        else:  # newest (default)
+            query = query.order_by(Poem.created_at.desc())
+
+        poems = query.all()
+        categories = Category.query.all()
+        
+        # Get user's favorite poem IDs if logged in
+        user_favorites = []
+        if current_user.is_authenticated:
+            from models import Favorite
+            user_favorites = [fav.poem_id for fav in Favorite.query.filter_by(user_id=current_user.id).all()]
+
+        return render_template(
+            'poems.html',
+            poems=poems,
+            categories=categories,
+            user_favorites=user_favorites,
+            current_sort=sort_by,
+            current_search=search_query,
+            current_category=category_filter,
+        )
 
     @app.route('/poems/full')
     def poems_full():
         from models import Poem
         poems = Poem.query.filter_by(published=True).order_by(Poem.created_at.desc()).all()
         return render_template('poems.html', poems=poems, require_login=False, full_view=True)
+
+    @app.route('/poem/<int:poem_id>')
+    def poem_detail(poem_id):
+        from models import Poem, Favorite
+        
+        poem = Poem.query.get(poem_id)
+        if poem is None or not poem.published:
+            flash('This verse seems to have wandered beyond the margins.')
+            return redirect(url_for('poems'))
+
+        # Increment view count
+        from models import History
+        if current_user.is_authenticated:
+            history = History(user_id=current_user.id, poem_id=poem_id)
+            db.session.add(history)
+            db.session.commit()
+
+        # Check if user has favorited this poem
+        is_favorited = False
+        if current_user.is_authenticated:
+            favorite = Favorite.query.filter_by(user_id=current_user.id, poem_id=poem_id).first()
+            is_favorited = favorite is not None
+
+        # Get neighboring poems for prev/next navigation
+        all_poems = Poem.query.filter_by(published=True).order_by(Poem.created_at.desc()).all()
+        poem_ids = [p.id for p in all_poems]
+        
+        current_index = poem_ids.index(poem_id) if poem_id in poem_ids else -1
+        prev_poem = all_poems[current_index - 1] if current_index > 0 else None
+        next_poem = all_poems[current_index + 1] if current_index >= 0 and current_index < len(all_poems) - 1 else None
+
+        return render_template(
+            'poem_detail.html',
+            poem=poem,
+            is_favorited=is_favorited,
+            prev_poem=prev_poem,
+            next_poem=next_poem,
+        )
+
+    @app.route('/favorites')
+    @login_required
+    def favorites():
+        from models import Poem, Favorite
+
+        favorites = Favorite.query.filter_by(user_id=current_user.id).order_by(Favorite.created_at.desc()).all()
+        favorite_poems = [Poem.query.get(fav.poem_id) for fav in favorites]
+        favorite_poems = [p for p in favorite_poems if p and p.published]
+
+        return render_template(
+            'favorites.html',
+            poems=favorite_poems,
+            total_favorites=len(favorite_poems),
+        )
+
+    @app.route('/api/v1/favorite/<int:poem_id>', methods=['POST'])
+    @login_required
+    def api_favorite_poem(poem_id):
+        from models import Poem, Favorite
+
+        poem = Poem.query.get(poem_id)
+        if poem is None or not poem.published:
+            return jsonify({'error': 'Poem not found'}), 404
+
+        existing_favorite = Favorite.query.filter_by(user_id=current_user.id, poem_id=poem_id).first()
+        
+        if existing_favorite:
+            db.session.delete(existing_favorite)
+            db.session.commit()
+            return jsonify({'success': True, 'favorited': False, 'message': 'Removed from favorites'})
+        else:
+            new_favorite = Favorite(user_id=current_user.id, poem_id=poem_id)
+            db.session.add(new_favorite)
+            db.session.commit()
+            return jsonify({'success': True, 'favorited': True, 'message': 'Added to favorites'})
 
     @app.route('/chat')
     def chat():
