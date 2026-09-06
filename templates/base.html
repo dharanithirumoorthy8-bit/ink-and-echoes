@@ -24,9 +24,26 @@
         {% if current_user.is_authenticated and current_user.is_admin %}
           <a href="/admin">Admin</a>
           <a href="/logout">Logout</a>
+        {% elif current_user.is_authenticated %}
+          <a href="/logout">Logout</a>
         {% else %}
-          <span class="muted">Admin login only — public submissions disabled</span>
+          <a href="/login">Login</a>
+          <a href="/signup">Register</a>
         {% endif %}
+        <div class="notification-wrap">
+          <button class="notification-button" type="button" aria-label="Open poem notifications" aria-expanded="false">
+            <span aria-hidden="true">&#128276;</span>
+            <span class="notification-count" hidden>0</span>
+          </button>
+          <div class="notification-panel" hidden>
+            <div class="notification-heading">
+              <strong>New poems</strong>
+              <button class="notification-enable" type="button">Enable alerts</button>
+            </div>
+            <p class="notification-empty">No new poems yet.</p>
+            <ul class="notification-list"></ul>
+          </div>
+        </div>
       </nav>
     </header>
     <main>
@@ -44,6 +61,7 @@
     <footer class="site-footer">
       <p>© 2026 Moonlit Marginalia</p>
     </footer>
+    <script src="/static/js/notifications.js"></script>
     {% block scripts %}{% endblock %}
   </body>
 </html>

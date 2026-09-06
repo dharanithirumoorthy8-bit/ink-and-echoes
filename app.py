@@ -229,6 +229,21 @@ def create_app():
             })
         return jsonify(out)
 
+    @app.route('/api/v1/notifications')
+    def api_notifications():
+        from models import Poem
+
+        poems = Poem.query.filter_by(published=True).order_by(Poem.created_at.desc()).limit(10).all()
+        return jsonify([
+            {
+                'id': poem.id,
+                'title': poem.title,
+                'created_at': poem.created_at.isoformat() if poem.created_at else None,
+                'url': url_for('poems'),
+            }
+            for poem in poems
+        ])
+
     @app.route('/api/v1/poems/<int:poem_id>')
     def api_poem_detail(poem_id):
         from models import Poem, Category
