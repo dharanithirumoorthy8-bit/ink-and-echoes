@@ -547,8 +547,61 @@ def create_app():
 
 app = create_app()
 
-with app.app_context():
-    db.create_all()
+
+def run_database_migration():
+    """Safely add columns that may be missing from an existing database."""
+    from sqlalchemy import inspect, text
+
+    with app.app_context():
+        db.create_all()
+
+        inspector = inspect(db.engine)
+
+        # Check whether the poem table exists
+        if 'poem' not in inspector.get_table_names():
+            return
+
+        existing_columns = {
+            column['name']
+            for column in inspector.get_columns('poem')
+        }
+
+        migrations = {
+            'description': 'ALTER TABLE poem ADD COLUMN description VARCHAR(500)',
+            'published': 'ALTER TABLE poem ADD COLUMN published BOOLEAN DEFAULT TRUE',
+            'is_featured': 'ALTER TABLE poem ADD COLUMN is_featured BOOLEAN DEFAULT FALSE',
+            'category_id': 'ALTER TABLE poem ADD COLUMN category_id INTEGER',
+            'cover_image': 'ALTER TABLE poem ADD COLUMN cover_image VARCHAR(255)',
+            'tags': 'ALTER TABLE poem ADD COLUMN tags VARCHAR(500)',
+            'created_at': 'ALTER TABLE poem ADD COLUMN created_at TIMESTAMP',
+            'updated_at': 'ALTER TABLE poem ADD COLUMN updated_at TIMESTAMP',
+        }
+
+        for column_name, sql in migrations.items():
+            if column_name not in existing_columns:
+                try:
+                    db.session.execute(text(sql))
+                    db.session.commit()
+                    print(f'Database migration: added poem.{column_name}')
+                except Exception as e:
+                    db.session.rollback()
+                    print(f'Database migration failed for poem.{column_name}: {e}')
+
+        # Make sure existing NULL values don't break the application
+        try:
+            db.session.execute(
+                text("UPDATE poem SET published = TRUE WHERE published IS NULL")
+            )
+            db.session.execute(
+                text("UPDATE poem SET is_featured = FALSE WHERE is_featured IS NULL")
+            )
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            print(f'Database default-value update skipped: {e}')
+
+
+run_database_migration()
 
 
 if __name__ == '__main__':
