@@ -3,108 +3,89 @@
 {% block content %}
 
 <style>
-
 /* =========================================================
    MOONLIT MARGINALIA — PREMIUM ADMIN DASHBOARD
    ========================================================= */
 
 .admin-page {
-    --admin-bg: #0b0f15;
-    --admin-card: rgba(255,255,255,.035);
-    --admin-card-strong: rgba(255,255,255,.055);
-    --admin-border: rgba(255,255,255,.09);
-    --admin-border-hover: rgba(185,151,220,.35);
-    --admin-text: #eeeaf2;
-    --admin-muted: #96939e;
-    --admin-faint: #64636d;
-    --admin-purple: #a987cc;
-    --admin-purple-soft: rgba(107,63,160,.16);
-    --admin-cyan-soft: rgba(0,212,255,.07);
-
-    position: relative;
-    max-width: 1280px;
+    max-width: 1250px;
     margin: 0 auto;
-    padding: 55px 24px 100px;
+    padding: 55px 24px 90px;
+    position: relative;
     overflow: hidden;
+
+    --gold: #c9a96e;
+    --purple: #a98ac7;
+    --text: #eee9f1;
+    --muted: #99949f;
+    --dim: #686570;
+    --line: rgba(255,255,255,.09);
+    --glass: rgba(255,255,255,.035);
 }
 
-/* =========================================================
-   AMBIENT BACKGROUND
-   ========================================================= */
-
-.admin-page::before,
-.admin-page::after {
-    content: "";
-    position: absolute;
-    pointer-events: none;
-    border-radius: 50%;
-    filter: blur(10px);
-    z-index: -1;
-}
+/* Background decoration */
 
 .admin-page::before {
+    content: "";
+    position: absolute;
     width: 420px;
     height: 420px;
     top: 80px;
-    right: -180px;
+    right: -220px;
+    border-radius: 50%;
     background: rgba(107,63,160,.10);
+    filter: blur(25px);
+    pointer-events: none;
 }
 
 .admin-page::after {
+    content: "";
+    position: absolute;
     width: 350px;
     height: 350px;
-    left: -180px;
-    top: 650px;
-    background: rgba(0,212,255,.045);
-}
-
-/* =========================================================
-   FLOATING STARS
-   ========================================================= */
-
-.moon-star {
-    position: absolute;
-    color: #b997dc;
-    opacity: .12;
+    left: -200px;
+    bottom: 100px;
+    border-radius: 50%;
+    background: rgba(0,212,255,.035);
+    filter: blur(30px);
     pointer-events: none;
-    animation: adminFloat 6s ease-in-out infinite;
-    z-index: 0;
 }
 
-.moon-star.one {
-    top: 180px;
-    right: 8%;
+.admin-star {
+    position: absolute;
+    color: var(--purple);
+    opacity: .15;
+    pointer-events: none;
+    animation: floatStar 5s ease-in-out infinite;
+}
+
+.admin-star.one {
+    top: 150px;
+    right: 9%;
     font-size: 20px;
 }
 
-.moon-star.two {
-    top: 470px;
+.admin-star.two {
+    top: 510px;
     left: 4%;
     font-size: 13px;
-    animation-delay: 1.5s;
+    animation-delay: 1s;
 }
 
-.moon-star.three {
-    top: 850px;
-    right: 4%;
-    font-size: 16px;
-    animation-delay: 3s;
+.admin-star.three {
+    bottom: 300px;
+    right: 5%;
+    font-size: 17px;
+    animation-delay: 2s;
 }
 
-.moon-star.four {
-    top: 1120px;
-    left: 10%;
-    font-size: 10px;
-    animation-delay: 4s;
-}
-
-@keyframes adminFloat {
-    0%, 100% {
+@keyframes floatStar {
+    0%,100% {
         transform: translateY(0);
     }
 
     50% {
-        transform: translateY(-12px);
+        transform: translateY(-10px);
     }
 }
 
@@ -115,94 +96,56 @@
 .admin-hero {
     position: relative;
     padding: 52px 48px;
-    margin-bottom: 28px;
+    margin-bottom: 25px;
 
-    border: 1px solid var(--admin-border);
+    border: 1px solid var(--line);
     border-radius: 28px;
 
     background:
         radial-gradient(
-            circle at 85% 15%,
-            rgba(107,63,160,.20),
+            circle at 90% 10%,
+            rgba(107,63,160,.18),
             transparent 32%
-        ),
-        radial-gradient(
-            circle at 5% 100%,
-            rgba(0,212,255,.07),
-            transparent 30%
         ),
         linear-gradient(
             145deg,
             rgba(255,255,255,.045),
-            rgba(255,255,255,.018)
+            rgba(255,255,255,.015)
         );
 
     backdrop-filter: blur(18px);
     -webkit-backdrop-filter: blur(18px);
 
     box-shadow:
-        0 30px 90px rgba(0,0,0,.38),
-        inset 0 1px rgba(255,255,255,.04);
+        0 30px 80px rgba(0,0,0,.30),
+        inset 0 1px rgba(255,255,255,.035);
 
     overflow: hidden;
-
-    animation: adminReveal .7s ease both;
 }
 
 .admin-hero::before {
     content: "☾";
     position: absolute;
-    right: 65px;
-    top: 22px;
+    right: 55px;
+    top: 5px;
 
-    font-family: Georgia, serif;
-    font-size: 145px;
-
-    color: #c6a9df;
+    color: #c5a6df;
     opacity: .035;
 
-    transform: rotate(-10deg);
-}
-
-.admin-hero::after {
-    content: "";
-    position: absolute;
-    left: 0;
-    right: 0;
-    top: 0;
-    height: 1px;
-
-    background:
-        linear-gradient(
-            90deg,
-            transparent,
-            rgba(185,151,220,.45),
-            transparent
-        );
-}
-
-@keyframes adminReveal {
-    from {
-        opacity: 0;
-        transform: translateY(14px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    font-family: Georgia, serif;
+    font-size: 170px;
+    transform: rotate(-12deg);
 }
 
 .admin-kicker {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
+    display: block;
 
     margin-bottom: 17px;
 
-    color: var(--admin-purple);
+    color: var(--purple);
+
     font-size: 10px;
-    letter-spacing: 3.2px;
+    letter-spacing: 3px;
     text-transform: uppercase;
 }
 
@@ -212,13 +155,13 @@
 
     margin: 0;
 
-    color: #f5f1f7;
+    color: #f4eff6;
 
     font-family: Georgia, "Times New Roman", serif;
-    font-size: clamp(42px, 6vw, 74px);
+    font-size: clamp(44px, 7vw, 76px);
     font-weight: 400;
     line-height: .98;
-    letter-spacing: -1.8px;
+    letter-spacing: -2px;
 }
 
 .admin-hero h1 span {
@@ -232,10 +175,12 @@
 
     max-width: 650px;
 
-    margin: 22px 0 0;
+    margin: 22px 0 25px;
 
-    color: var(--admin-muted);
-    font-size: 15px;
+    color: var(--muted);
+
+    font-family: Georgia, serif;
+    font-size: 14px;
     line-height: 1.9;
 }
 
@@ -246,30 +191,27 @@
     width: 230px;
     gap: 12px;
 
-    margin: 27px 0;
+    margin-bottom: 24px;
 
-    color: #8c6ab1;
+    color: var(--purple);
 }
 
 .admin-divider span {
     height: 1px;
     flex: 1;
-
-    background:
-        linear-gradient(
-            90deg,
-            transparent,
-            rgba(159,131,199,.4)
-        );
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(169,138,199,.4)
+    );
 }
 
 .admin-divider span:last-child {
-    background:
-        linear-gradient(
-            90deg,
-            rgba(159,131,199,.4),
-            transparent
-        );
+    background: linear-gradient(
+        90deg,
+        rgba(169,138,199,.4),
+        transparent
+    );
 }
 
 .admin-status {
@@ -282,11 +224,12 @@
     border: 1px solid rgba(112,196,114,.18);
     border-radius: 999px;
 
-    background: rgba(76,175,80,.055);
+    background: rgba(76,175,80,.045);
 
-    color: #9dcc9e;
-    font-size: 11px;
-    letter-spacing: .4px;
+    color: #9ac99c;
+
+    font-size: 10px;
+    letter-spacing: .5px;
 }
 
 .admin-status-dot {
@@ -299,19 +242,7 @@
 
     box-shadow:
         0 0 0 4px rgba(112,196,114,.07),
-        0 0 15px rgba(112,196,114,.75);
-
-    animation: statusPulse 2s ease infinite;
-}
-
-@keyframes statusPulse {
-    0%, 100% {
-        opacity: 1;
-    }
-
-    50% {
-        opacity: .55;
-    }
+        0 0 14px rgba(112,196,114,.65);
 }
 
 /* =========================================================
@@ -322,56 +253,46 @@
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 16px;
+
     margin-bottom: 30px;
 }
 
 .admin-stat {
     position: relative;
 
-    padding: 25px 27px;
+    padding: 25px;
 
-    border: 1px solid var(--admin-border);
+    border: 1px solid var(--line);
     border-radius: 20px;
 
-    background:
-        linear-gradient(
-            145deg,
-            rgba(255,255,255,.045),
-            rgba(255,255,255,.018)
-        );
+    background: var(--glass);
 
     backdrop-filter: blur(15px);
     -webkit-backdrop-filter: blur(15px);
 
-    overflow: hidden;
-
-    transition:
-        transform .3s ease,
-        border-color .3s ease,
-        box-shadow .3s ease;
-}
-
-.admin-stat::before {
-    content: "✦";
-
-    position: absolute;
-    right: 20px;
-    top: 16px;
-
-    color: #b997dc;
-    opacity: .08;
-
-    font-size: 35px;
+    transition: .3s ease;
 }
 
 .admin-stat:hover {
-    transform: translateY(-5px);
+    transform: translateY(-4px);
 
-    border-color: var(--admin-border-hover);
+    border-color: rgba(169,138,199,.30);
 
     box-shadow:
-        0 18px 45px rgba(0,0,0,.22),
-        0 0 30px rgba(107,63,160,.06);
+        0 18px 45px rgba(0,0,0,.20);
+}
+
+.admin-stat::after {
+    content: "✦";
+
+    position: absolute;
+    top: 17px;
+    right: 20px;
+
+    color: var(--purple);
+    opacity: .08;
+
+    font-size: 30px;
 }
 
 .admin-stat-label {
@@ -379,17 +300,15 @@
 
     margin-bottom: 7px;
 
-    color: #777680;
+    color: #77737e;
 
-    font-size: 10px;
-    letter-spacing: 2.2px;
+    font-size: 9px;
+    letter-spacing: 2px;
     text-transform: uppercase;
 }
 
 .admin-stat-number {
-    display: block;
-
-    color: #eee9f3;
+    color: #eee9f1;
 
     font-family: Georgia, serif;
     font-size: 34px;
@@ -397,7 +316,7 @@
 }
 
 /* =========================================================
-   ADD POEM
+   ADD POEM CARD
    ========================================================= */
 
 .admin-add-card {
@@ -405,58 +324,41 @@
 
     padding: 38px;
 
-    border: 1px solid var(--admin-border);
+    border: 1px solid var(--line);
     border-radius: 24px;
 
     background:
         radial-gradient(
             circle at 100% 0%,
-            rgba(107,63,160,.11),
+            rgba(107,63,160,.10),
             transparent 30%
         ),
         linear-gradient(
             145deg,
             rgba(255,255,255,.04),
-            rgba(255,255,255,.018)
+            rgba(255,255,255,.015)
         );
 
     backdrop-filter: blur(18px);
     -webkit-backdrop-filter: blur(18px);
 
-    box-shadow: 0 25px 65px rgba(0,0,0,.25);
+    box-shadow: 0 25px 65px rgba(0,0,0,.22);
 
     margin-bottom: 45px;
-
-    animation: adminReveal .8s ease both;
-    animation-delay: .1s;
-}
-
-.admin-add-card::after {
-    content: "✧";
-
-    position: absolute;
-    right: 32px;
-    top: 28px;
-
-    color: #b997dc;
-    opacity: .08;
-
-    font-size: 50px;
 }
 
 .admin-section-heading {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    gap: 20px;
 
-    margin-bottom: 30px;
+    margin-bottom: 28px;
 }
 
 .admin-section-heading h2 {
-    margin: 0 0 7px;
+    margin: 0 0 6px;
 
-    color: #f0ebf3;
+    color: #eee9f1;
 
     font-family: Georgia, serif;
     font-size: 27px;
@@ -466,9 +368,15 @@
 .admin-section-heading p {
     margin: 0;
 
-    color: #81818c;
+    color: #7f7c86;
 
-    font-size: 13px;
+    font-size: 12px;
+}
+
+.admin-section-heading > span {
+    color: var(--purple);
+    opacity: .35;
+    font-size: 22px;
 }
 
 /* =========================================================
@@ -477,7 +385,7 @@
 
 .admin-form {
     display: grid;
-    gap: 22px;
+    gap: 20px;
 }
 
 .admin-form-grid {
@@ -497,9 +405,9 @@
 }
 
 .admin-field label {
-    color: #9f9ba6;
+    color: #99949f;
 
-    font-size: 10px;
+    font-size: 9px;
     letter-spacing: 1.8px;
     text-transform: uppercase;
 }
@@ -510,19 +418,19 @@
     width: 100%;
     box-sizing: border-box;
 
-    border: 1px solid rgba(255,255,255,.085);
-    border-radius: 13px;
+    padding: 14px 15px;
+
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: 12px;
 
     outline: none;
 
-    padding: 14px 16px;
-
-    background: rgba(0,0,0,.24);
+    background: rgba(0,0,0,.22);
 
     color: #eeeaf1;
 
     font-family: Georgia, serif;
-    font-size: 14px;
+    font-size: 13px;
 
     transition:
         border-color .25s ease,
@@ -531,39 +439,30 @@
 }
 
 .admin-field textarea {
-    min-height: 180px;
-
+    min-height: 170px;
     resize: vertical;
-
     line-height: 1.85;
 }
 
 .admin-field textarea#body {
-    min-height: 280px;
-    font-size: 15px;
+    min-height: 290px;
+    font-size: 14px;
 }
 
-.admin-field input:hover,
-.admin-field textarea:hover,
-.admin-field select:hover {
-    border-color: rgba(255,255,255,.15);
+.admin-field input::placeholder,
+.admin-field textarea::placeholder {
+    color: #56545d;
 }
 
 .admin-field input:focus,
 .admin-field textarea:focus,
 .admin-field select:focus {
-    border-color: rgba(169,135,204,.65);
+    border-color: rgba(169,138,199,.60);
 
-    background: rgba(0,0,0,.3);
+    background: rgba(0,0,0,.30);
 
     box-shadow:
-        0 0 0 3px rgba(107,63,160,.10),
-        0 8px 25px rgba(0,0,0,.12);
-}
-
-.admin-field input::placeholder,
-.admin-field textarea::placeholder {
-    color: #555661;
+        0 0 0 3px rgba(107,63,160,.09);
 }
 
 .admin-field select option {
@@ -572,30 +471,31 @@
 }
 
 /* =========================================================
-   FILE INPUT
+   FILE
    ========================================================= */
 
 .admin-field input[type="file"] {
-    padding: 10px;
+    padding: 9px;
 
-    color: #85848d;
+    color: #777580;
 
     cursor: pointer;
 }
 
 .admin-field input[type="file"]::file-selector-button {
-    margin-right: 12px;
-
-    border: 1px solid rgba(185,151,220,.25);
-    border-radius: 9px;
+    margin-right: 10px;
 
     padding: 8px 12px;
 
-    background: rgba(107,63,160,.15);
-    color: #c5afd9;
+    border: 1px solid rgba(169,138,199,.25);
+    border-radius: 8px;
+
+    background: rgba(107,63,160,.13);
+
+    color: #c1acd2;
 
     font-family: inherit;
-    font-size: 11px;
+    font-size: 10px;
 
     cursor: pointer;
 }
@@ -606,7 +506,6 @@
 
 .admin-check-row {
     display: flex;
-    flex-wrap: wrap;
     align-items: center;
     gap: 18px;
 }
@@ -616,9 +515,9 @@
     align-items: center;
     gap: 9px;
 
-    color: #96939d;
+    color: #8f8b95;
 
-    font-size: 12px;
+    font-size: 11px;
 
     cursor: pointer;
 }
@@ -627,7 +526,7 @@
     width: 15px;
     height: 15px;
 
-    accent-color: #8e65b8;
+    accent-color: #9068b8;
 
     cursor: pointer;
 }
@@ -639,84 +538,64 @@
 .admin-actions {
     display: flex;
     justify-content: flex-end;
-
-    margin-top: 3px;
 }
 
 .admin-submit {
-    position: relative;
-
-    border: 1px solid rgba(185,151,220,.35);
+    border: 1px solid rgba(201,169,110,.28);
     border-radius: 999px;
 
-    padding: 13px 25px;
+    padding: 13px 24px;
 
     background:
         linear-gradient(
             135deg,
             rgba(107,63,160,.88),
-            rgba(70,48,105,.95)
+            rgba(66,45,98,.95)
         );
 
     color: #fff;
 
+    font-family: inherit;
+    font-size: 11px;
+    letter-spacing: .7px;
+
     cursor: pointer;
 
-    font-family: inherit;
-    font-size: 12px;
-    letter-spacing: .8px;
-
     box-shadow:
-        0 10px 28px rgba(107,63,160,.16);
+        0 10px 30px rgba(107,63,160,.18);
 
-    transition:
-        transform .25s ease,
-        box-shadow .25s ease,
-        border-color .25s ease;
+    transition: .25s ease;
 }
 
 .admin-submit:hover {
     transform: translateY(-3px);
 
-    border-color: rgba(205,177,230,.55);
-
     box-shadow:
         0 16px 38px rgba(107,63,160,.25);
-}
 
-.admin-submit:active {
-    transform: translateY(-1px);
+    border-color: rgba(201,169,110,.45);
 }
-
-.admin-submit:disabled {
-    cursor: wait;
-}
-
-/* =========================================================
-   NOTICE
-   ========================================================= */
 
 .offline-sync-notice {
     display: flex;
     align-items: center;
-    gap: 9px;
+    gap: 8px;
 
-    margin-top: 19px;
+    margin-top: 17px;
+    padding: 12px 14px;
 
-    padding: 13px 16px;
+    border: 1px solid rgba(255,193,7,.09);
+    border-radius: 11px;
 
-    border: 1px solid rgba(255,193,7,.11);
-    border-radius: 12px;
+    background: rgba(255,193,7,.025);
 
-    background: rgba(255,193,7,.035);
+    color: #73716f;
 
-    color: #77766f;
-
-    font-size: 11px;
+    font-size: 10px;
 }
 
 /* =========================================================
-   SAVED POEMS
+   POEMS
    ========================================================= */
 
 .admin-list-section {
@@ -732,55 +611,31 @@
 .admin-poem-card {
     position: relative;
 
-    padding: 26px;
+    padding: 25px;
 
     border: 1px solid rgba(255,255,255,.075);
-    border-radius: 20px;
+    border-radius: 19px;
 
     background:
         linear-gradient(
             145deg,
             rgba(255,255,255,.035),
-            rgba(255,255,255,.018)
+            rgba(255,255,255,.015)
         );
 
     backdrop-filter: blur(14px);
     -webkit-backdrop-filter: blur(14px);
 
-    overflow: hidden;
-
-    transition:
-        transform .3s ease,
-        border-color .3s ease,
-        box-shadow .3s ease;
-}
-
-.admin-poem-card::before {
-    content: "";
-
-    position: absolute;
-    left: 0;
-    top: 0;
-
-    width: 100%;
-    height: 1px;
-
-    background:
-        linear-gradient(
-            90deg,
-            transparent,
-            rgba(185,151,220,.25),
-            transparent
-        );
+    transition: .3s ease;
 }
 
 .admin-poem-card:hover {
-    transform: translateY(-5px);
+    transform: translateY(-4px);
 
-    border-color: rgba(159,131,199,.28);
+    border-color: rgba(169,138,199,.28);
 
     box-shadow:
-        0 18px 50px rgba(0,0,0,.22);
+        0 20px 50px rgba(0,0,0,.20);
 }
 
 .admin-poem-top {
@@ -796,50 +651,45 @@
     color: #eee9f1;
 
     font-family: Georgia, serif;
-    font-size: 21px;
+    font-size: 20px;
     font-weight: 400;
 
     line-height: 1.3;
 }
 
 .admin-poem-meta {
-    margin-top: 8px;
+    margin-top: 7px;
 
-    color: #6f7079;
+    color: #6f6c76;
 
-    font-size: 11px;
-    letter-spacing: .3px;
+    font-size: 10px;
 }
 
 .admin-featured-badge {
-    display: inline-flex;
-    align-items: center;
-
     padding: 5px 9px;
 
-    border: 1px solid rgba(255,215,100,.14);
+    border: 1px solid rgba(201,169,110,.15);
     border-radius: 999px;
 
-    background: rgba(255,215,100,.055);
+    background: rgba(201,169,110,.045);
 
-    color: #c8b376;
+    color: #c9b47f;
 
-    font-size: 9px;
-    letter-spacing: 1.3px;
+    font-size: 8px;
+    letter-spacing: 1.2px;
 
     white-space: nowrap;
 }
 
 .admin-poem-preview {
-    min-height: 74px;
+    min-height: 75px;
 
-    margin: 18px 0;
+    margin: 17px 0;
 
-    color: #85858f;
+    color: #85818c;
 
     font-family: Georgia, serif;
-    font-size: 13px;
-
+    font-size: 12px;
     line-height: 1.8;
 
     display: -webkit-box;
@@ -851,13 +701,12 @@
 
 .admin-poem-actions {
     display: flex;
-    align-items: center;
-    gap: 8px;
     flex-wrap: wrap;
+    gap: 7px;
 
-    padding-top: 15px;
+    padding-top: 14px;
 
-    border-top: 1px solid rgba(255,255,255,.055);
+    border-top: 1px solid rgba(255,255,255,.05);
 }
 
 .admin-action-btn {
@@ -865,19 +714,19 @@
     align-items: center;
     justify-content: center;
 
-    padding: 8px 13px;
+    padding: 7px 12px;
 
-    border: 1px solid rgba(255,255,255,.09);
+    border: 1px solid rgba(255,255,255,.085);
     border-radius: 999px;
 
-    background: rgba(255,255,255,.02);
+    background: rgba(255,255,255,.018);
 
-    color: #94929c;
-
-    text-decoration: none;
+    color: #8e8a94;
 
     font-family: inherit;
-    font-size: 10px;
+    font-size: 9px;
+
+    text-decoration: none;
 
     cursor: pointer;
 
@@ -885,25 +734,25 @@
 }
 
 .admin-action-btn:hover {
-    color: #ddd3e6;
+    color: #d8cce2;
 
-    border-color: rgba(159,131,199,.34);
+    border-color: rgba(169,138,199,.34);
 
-    background: rgba(107,63,160,.07);
+    background: rgba(107,63,160,.06);
 }
 
 .admin-action-btn.danger:hover {
-    color: #ef9690;
+    color: #ef9991;
 
-    border-color: rgba(244,67,54,.3);
+    border-color: rgba(244,67,54,.28);
 
-    background: rgba(244,67,54,.04);
+    background: rgba(244,67,54,.035);
 }
 
 .admin-action-btn.feature:hover {
-    color: #d9c37e;
+    color: #d5be7c;
 
-    border-color: rgba(255,215,100,.25);
+    border-color: rgba(201,169,110,.25);
 }
 
 /* =========================================================
@@ -919,64 +768,47 @@
 }
 
 .admin-panel {
-    position: relative;
-
-    padding: 29px;
+    padding: 28px;
 
     border: 1px solid rgba(255,255,255,.075);
-    border-radius: 21px;
+    border-radius: 20px;
 
     background:
         linear-gradient(
             145deg,
             rgba(255,255,255,.035),
-            rgba(255,255,255,.018)
+            rgba(255,255,255,.015)
         );
 
     backdrop-filter: blur(14px);
     -webkit-backdrop-filter: blur(14px);
 }
 
-.admin-panel::after {
-    content: "✦";
-
-    position: absolute;
-    right: 25px;
-    top: 22px;
-
-    color: #b997dc;
-
-    font-size: 30px;
-    opacity: .06;
-}
-
 .admin-panel h2 {
-    margin: 0 0 20px;
+    margin: 0 0 18px;
 
-    color: #eee8f1;
+    color: #eee8f0;
 
     font-family: Georgia, serif;
-    font-size: 23px;
+    font-size: 22px;
     font-weight: 400;
 }
 
 .admin-empty {
-    padding: 20px 0;
-
-    color: #64656e;
+    color: #66636d;
 
     font-family: Georgia, serif;
-    font-size: 13px;
+    font-size: 12px;
 }
 
 .admin-item {
-    padding: 15px 0;
+    padding: 14px 0;
 
     border-bottom: 1px solid rgba(255,255,255,.05);
 }
 
 .admin-item:last-child {
-    border-bottom: 0;
+    border-bottom: none;
 }
 
 .admin-item strong {
@@ -984,34 +816,34 @@
 
     margin-bottom: 5px;
 
-    color: #c6c0ca;
+    color: #c8c2cc;
 
     font-family: Georgia, serif;
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 400;
 }
 
 .admin-item p {
     margin: 0;
 
-    color: #7c7c86;
+    color: #7c7983;
 
-    font-size: 12px;
+    font-size: 11px;
     line-height: 1.7;
 }
 
 .admin-item small {
     display: block;
 
-    margin-top: 7px;
+    margin-top: 6px;
 
-    color: #575861;
+    color: #55535d;
 
-    font-size: 10px;
+    font-size: 9px;
 }
 
 /* =========================================================
-   VIEWERS
+   ACTIVE VISITORS
    ========================================================= */
 
 .admin-viewers-link {
@@ -1019,63 +851,46 @@
     align-items: center;
     gap: 8px;
 
-    margin-top: 30px;
+    margin-top: 28px;
 
-    padding: 11px 17px;
+    padding: 10px 16px;
 
     border: 1px solid rgba(255,255,255,.08);
     border-radius: 999px;
 
     background: rgba(255,255,255,.018);
 
-    color: #93909a;
+    color: #908c96;
 
     text-decoration: none;
 
-    font-size: 11px;
+    font-size: 10px;
 
     transition: .25s ease;
 }
 
 .admin-viewers-link:hover {
-    color: #d8cee2;
+    color: #d7cde0;
 
-    border-color: rgba(159,131,199,.3);
+    border-color: rgba(169,138,199,.30);
 
-    background: rgba(107,63,160,.055);
+    background: rgba(107,63,160,.05);
 
     transform: translateX(3px);
-}
-
-/* =========================================================
-   SCROLLBAR
-   ========================================================= */
-
-.admin-page textarea::-webkit-scrollbar {
-    width: 6px;
-}
-
-.admin-page textarea::-webkit-scrollbar-track {
-    background: transparent;
-}
-
-.admin-page textarea::-webkit-scrollbar-thumb {
-    background: rgba(159,131,199,.22);
-    border-radius: 10px;
 }
 
 /* =========================================================
    MOBILE
    ========================================================= */
 
-@media (max-width: 900px) {
+@media (max-width: 850px) {
 
     .admin-page {
-        padding: 38px 18px 75px;
+        padding: 35px 17px 70px;
     }
 
     .admin-hero {
-        padding: 38px 28px;
+        padding: 38px 27px;
         border-radius: 22px;
     }
 
@@ -1095,31 +910,25 @@
     .admin-secondary-grid {
         grid-template-columns: 1fr;
     }
-
-    .admin-add-card,
-    .admin-panel {
-        padding: 27px;
-    }
 }
 
 @media (max-width: 560px) {
 
     .admin-page {
-        padding: 25px 12px 60px;
+        padding: 25px 12px 55px;
     }
 
     .admin-hero {
-        padding: 30px 21px;
+        padding: 30px 20px;
         border-radius: 19px;
     }
 
     .admin-hero h1 {
         font-size: 43px;
-        letter-spacing: -1px;
     }
 
     .admin-subtitle {
-        font-size: 13px;
+        font-size: 12px;
     }
 
     .admin-add-card,
@@ -1129,11 +938,11 @@
     }
 
     .admin-section-heading h2 {
-        font-size: 23px;
+        font-size: 22px;
     }
 
     .admin-poem-card {
-        padding: 21px;
+        padding: 20px;
     }
 
     .admin-poem-top {
@@ -1148,7 +957,7 @@
         width: 100%;
     }
 
-    .moon-star {
+    .admin-star {
         display: none;
     }
 }
@@ -1156,14 +965,11 @@
 </style>
 
 
-<!-- =========================================================
-     DECORATIVE ELEMENTS
-     ========================================================= -->
+<!-- DECORATIVE STARS -->
 
-<span class="moon-star one">✦</span>
-<span class="moon-star two">✧</span>
-<span class="moon-star three">✦</span>
-<span class="moon-star four">·</span>
+<span class="admin-star one">✦</span>
+<span class="admin-star two">✧</span>
+<span class="admin-star three">✦</span>
 
 
 <section class="admin-page">
@@ -1269,9 +1075,7 @@
 
             </div>
 
-            <span aria-hidden="true">
-                ✦
-            </span>
+            <span>✦</span>
 
         </div>
 
@@ -1373,7 +1177,7 @@
                 </div>
 
 
-                <!-- POEM -->
+                <!-- POEM BODY -->
 
                 <div class="admin-field full">
 
@@ -1393,7 +1197,7 @@
                 </div>
 
 
-                <!-- COVER -->
+                <!-- COVER IMAGE -->
 
                 <div class="admin-field full">
 
@@ -1413,7 +1217,7 @@
             </div>
 
 
-            <!-- OPTIONS -->
+            <!-- PUBLISH -->
 
             <div class="admin-check-row">
 
@@ -1433,7 +1237,7 @@
             </div>
 
 
-            <!-- SUBMIT -->
+            <!-- BUTTON -->
 
             <div class="admin-actions">
 
@@ -1483,9 +1287,7 @@
 
             </div>
 
-            <span>
-                ✧
-            </span>
+            <span>✧</span>
 
         </div>
 
@@ -1541,13 +1343,9 @@
                 <div class="admin-poem-preview">
 
                     {% if p.description %}
-
                         {{ p.description }}
-
                     {% else %}
-
                         {{ p.body }}
-
                     {% endif %}
 
                 </div>
@@ -1762,32 +1560,21 @@
 {% endblock %}
 
 
-<!-- =========================================================
-     SCRIPTS
-     IMPORTANT: ONLY ONE scripts BLOCK
-     ========================================================= -->
-
 {% block scripts %}
 
 <script src="{{ url_for('static', filename='js/admin_offline.js') }}"></script>
 
 <script>
+
 document.addEventListener("DOMContentLoaded", function () {
 
     /* =====================================================
-       ELEMENTS
+       CHARACTER COUNTERS
        ===================================================== */
 
     const body = document.getElementById("body");
     const description = document.getElementById("description");
-    const cover = document.getElementById("cover_image");
-    const form = document.querySelector(".admin-form");
-    const submitButton = document.querySelector(".admin-submit");
 
-
-    /* =====================================================
-       CHARACTER COUNTER
-       ===================================================== */
 
     function addCounter(element, limit) {
 
@@ -1808,34 +1595,31 @@ document.addEventListener("DOMContentLoaded", function () {
         element.parentElement.appendChild(counter);
 
 
-        function updateCounter() {
-
-            const length = element.value.length;
+        function update() {
 
             counter.textContent =
-                length + " / " + limit;
+                element.value.length + " / " + limit;
 
+            if (element.value.length > limit * .9) {
 
-            if (length >= limit * 0.9) {
-
-                counter.style.color =
-                    "#c9a96e";
+                counter.style.color = "#c9a96e";
 
             } else {
 
-                counter.style.color =
-                    "#5f6068";
+                counter.style.color = "#5f6068";
+
             }
+
         }
 
 
         element.addEventListener(
             "input",
-            updateCounter
+            update
         );
 
+        update();
 
-        updateCounter();
     }
 
 
@@ -1844,8 +1628,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
     /* =====================================================
-       IMAGE VALIDATION
+       COVER IMAGE VALIDATION
        ===================================================== */
+
+    const cover =
+        document.getElementById("cover_image");
+
 
     if (cover) {
 
@@ -1860,7 +1648,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 }
 
 
-                const allowedTypes = [
+                const allowed = [
                     "image/jpeg",
                     "image/png",
                     "image/webp",
@@ -1868,7 +1656,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 ];
 
 
-                if (!allowedTypes.includes(file.type)) {
+                if (!allowed.includes(file.type)) {
 
                     alert(
                         "Please choose a JPG, PNG, WEBP or GIF image."
@@ -1877,14 +1665,11 @@ document.addEventListener("DOMContentLoaded", function () {
                     this.value = "";
 
                     return;
+
                 }
 
 
-                const maxSize =
-                    8 * 1024 * 1024;
-
-
-                if (file.size > maxSize) {
+                if (file.size > 8 * 1024 * 1024) {
 
                     alert(
                         "Image size should be below 8 MB."
@@ -1893,6 +1678,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     this.value = "";
 
                     return;
+
                 }
 
             }
@@ -1902,14 +1688,36 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
     /* =====================================================
-       FORM SUBMIT FEEDBACK
+       SUBMIT BUTTON
        ===================================================== */
+
+    const form =
+        document.querySelector(".admin-form");
+
+    const submitButton =
+        document.querySelector(".admin-submit");
+
 
     if (form && submitButton) {
 
         form.addEventListener(
             "submit",
-            function () {
+            function (event) {
+
+                if (body && !body.value.trim()) {
+
+                    event.preventDefault();
+
+                    alert(
+                        "Please enter your poem before publishing."
+                    );
+
+                    body.focus();
+
+                    return;
+
+                }
+
 
                 submitButton.disabled = true;
 
@@ -1923,45 +1731,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
     }
 
-
-    /* =====================================================
-       PREVENT ACCIDENTAL EMPTY BODY
-       ===================================================== */
-
-    if (form && body) {
-
-        form.addEventListener(
-            "submit",
-            function (event) {
-
-                if (!body.value.trim()) {
-
-                    event.preventDefault();
-
-                    alert(
-                        "Please enter your poem before publishing."
-                    );
-
-                    body.focus();
-
-                    if (submitButton) {
-
-                        submitButton.disabled = false;
-
-                        submitButton.style.opacity = "1";
-
-                        submitButton.innerHTML =
-                            "✦ Publish Poem →";
-                    }
-
-                }
-
-            }
-        );
-
-    }
-
 });
+
 </script>
 
 {% endblock %}
