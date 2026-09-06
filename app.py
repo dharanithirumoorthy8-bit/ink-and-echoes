@@ -45,7 +45,6 @@ def create_app():
     except Exception:
         pass
 
-
     # =========================================================
     # SECRET KEY
     # =========================================================
@@ -62,7 +61,6 @@ def create_app():
     if not secret_key:
 
         try:
-
             if os.path.exists(secret_file):
 
                 with open(
@@ -88,15 +86,12 @@ def create_app():
                 ) as fh:
 
                     fh.write(
-                        secret_key.encode(
-                            "utf-8"
-                        )
+                        secret_key.encode("utf-8")
                     )
 
         except Exception:
 
             secret_key = "dev-secret"
-
 
     app.config["SECRET_KEY"] = secret_key
 
@@ -113,7 +108,6 @@ def create_app():
             "admin123"
         )
     )
-
 
     # =========================================================
     # DATABASE
@@ -136,11 +130,9 @@ def create_app():
             .replace("\\", "/")
         )
 
-
     app.config[
         "SQLALCHEMY_DATABASE_URI"
     ] = database_url
-
 
     if app.config[
         "SQLALCHEMY_DATABASE_URI"
@@ -158,7 +150,6 @@ def create_app():
             )
         )
 
-
     app.config[
         "SQLALCHEMY_TRACK_MODIFICATIONS"
     ] = False
@@ -170,32 +161,37 @@ def create_app():
         ) == "1"
     )
 
-
     db.init_app(app)
-
 
     # =========================================================
     # LOGIN MANAGER
     # =========================================================
 
-        login_manager = LoginManager()
-    login_manager.login_view = 'auth.login'
+    login_manager = LoginManager()
+
+    login_manager.login_view = "auth.login"
+
     login_manager.init_app(app)
 
     from models import User
 
     @login_manager.user_loader
     def load_user(user_id):
-        try:
-            db.session.rollback()
-            return User.query.get(int(user_id))
-        except Exception:
-            db.session.rollback()
-            return None
-    except Exception:
-        db.session.rollback()
-        return None
 
+        try:
+
+            # Clear any previously failed transaction
+            db.session.rollback()
+
+            return User.query.get(
+                int(user_id)
+            )
+
+        except Exception:
+
+            db.session.rollback()
+
+            return None
 
     # =========================================================
     # BLUEPRINTS
@@ -207,13 +203,11 @@ def create_app():
         auth_bp
     )
 
-
     from admin import admin_bp
 
     app.register_blueprint(
         admin_bp
     )
-
 
     from ai import ai_bp
 
@@ -221,14 +215,8 @@ def create_app():
         ai_bp
     )
 
-
     # =========================================================
     # GLOBAL SITE STATISTICS
-    #
-    # IMPORTANT:
-    # Each query is independent.
-    # If Favorite table has an old schema,
-    # Login/Register will NOT crash.
     # =========================================================
 
     @app.context_processor
@@ -241,7 +229,6 @@ def create_app():
             Favorite,
             PageView,
         )
-
 
         # -------------------------
         # TOTAL POEMS
@@ -259,8 +246,9 @@ def create_app():
 
         except Exception:
 
-            total_poems = 0
+            db.session.rollback()
 
+            total_poems = 0
 
         # -------------------------
         # REGISTERED USERS
@@ -274,8 +262,9 @@ def create_app():
 
         except Exception:
 
-            registered_users = 0
+            db.session.rollback()
 
+            registered_users = 0
 
         # -------------------------
         # CATEGORIES
@@ -289,8 +278,9 @@ def create_app():
 
         except Exception:
 
-            total_categories = 0
+            db.session.rollback()
 
+            total_categories = 0
 
         # -------------------------
         # FAVORITES
@@ -304,8 +294,9 @@ def create_app():
 
         except Exception:
 
-            total_favorites = 0
+            db.session.rollback()
 
+            total_favorites = 0
 
         # -------------------------
         # TOTAL VIEWS
@@ -327,8 +318,9 @@ def create_app():
 
         except Exception:
 
-            total_views = 0
+            db.session.rollback()
 
+            total_views = 0
 
         return {
 
@@ -349,9 +341,7 @@ def create_app():
 
             "total_views":
                 total_views,
-
         }
-
 
     # =========================================================
     # INIT DATABASE
@@ -364,24 +354,31 @@ def create_app():
 
         from models import db as _db
 
-        _db.create_all()
-
         try:
 
-            from auth import (
-                get_admin_user
+            _db.create_all()
+
+            try:
+
+                from auth import get_admin_user
+
+                get_admin_user()
+
+            except Exception:
+
+                _db.session.rollback()
+
+            print(
+                "Database initialized and admin user ensured."
             )
 
-            get_admin_user()
+        except Exception as e:
 
-        except Exception:
+            _db.session.rollback()
 
-            pass
-
-        print(
-            "Database initialized and admin user ensured."
-        )
-
+            print(
+                f"Database initialization failed: {e}"
+            )
 
     # =========================================================
     # CREATE ADMIN
@@ -411,52 +408,59 @@ def create_app():
             db as _db
         )
 
+        try:
 
-        user = (
-            User.query
-            .filter_by(
-                username=username
-            )
-            .first()
-        )
-
-
-        if user is None:
-
-            user = User(
-                username=username,
-                email=f"{username}@admin.local",
-                is_admin=True
+            user = (
+                User.query
+                .filter_by(
+                    username=username
+                )
+                .first()
             )
 
-            user.set_password(
-                password
-            )
+            if user is None:
 
-            _db.session.add(
-                user
-            )
+                user = User(
+                    username=username,
+                    email=f"{username}@admin.local",
+                    is_admin=True
+                )
 
-            _db.session.commit()
+                user.set_password(
+                    password
+                )
+
+                _db.session.add(
+                    user
+                )
+
+                _db.session.commit()
+
+                print(
+                    f"Created admin user: {username}"
+                )
+
+            else:
+
+                user.is_admin = True
+
+                user.set_password(
+                    password
+                )
+
+                _db.session.commit()
+
+                print(
+                    f"Updated admin user: {username}"
+                )
+
+        except Exception as e:
+
+            _db.session.rollback()
 
             print(
-                f"Created admin user: {username}"
+                f"Failed to create admin: {e}"
             )
-
-        else:
-
-            user.is_admin = True
-
-            user.set_password(
-                password
-            )
-
-            _db.session.commit()
-
-            print(
-                f"Updated admin user: {username}"
-            )
-
 
     # =========================================================
     # CREATE API TOKEN
@@ -489,73 +493,76 @@ def create_app():
 
         import secrets
 
+        try:
 
-        user = (
-            User.query
-            .filter(
-                (
-                    User.username
-                    == username
+            user = (
+                User.query
+                .filter(
+                    (
+                        User.username
+                        == username
+                    )
+                    |
+                    (
+                        User.email
+                        == username
+                    )
                 )
-                |
-                (
-                    User.email
-                    == username
+                .first()
+            )
+
+            if not user or not getattr(
+                user,
+                "is_admin",
+                False
+            ):
+
+                print(
+                    "User not found or not an admin"
+                )
+
+                return
+
+            raw = secrets.token_urlsafe(
+                32
+            )
+
+            token_hash = (
+                generate_password_hash(
+                    raw
                 )
             )
-            .first()
-        )
 
+            token = ApiToken(
+                user_id=user.id,
+                name=name,
+                token_hash=token_hash
+            )
 
-        if not user or not getattr(
-            user,
-            "is_admin",
-            False
-        ):
+            _db.session.add(
+                token
+            )
+
+            _db.session.commit()
 
             print(
-                "User not found or not an admin"
+                "Created token for",
+                username
             )
 
-            return
-
-
-        raw = secrets.token_urlsafe(
-            32
-        )
-
-        token_hash = (
-            generate_password_hash(
-                raw
+            print(
+                "Raw token (store this somewhere safe):"
             )
-        )
 
+            print(raw)
 
-        token = ApiToken(
-            user_id=user.id,
-            name=name,
-            token_hash=token_hash
-        )
+        except Exception as e:
 
+            _db.session.rollback()
 
-        _db.session.add(
-            token
-        )
-
-        _db.session.commit()
-
-
-        print(
-            "Created token for",
-            username
-        )
-
-        print(
-            "Raw token (store this somewhere safe):"
-        )
-
-        print(raw)
-
+            print(
+                f"Failed to create token: {e}"
+            )
 
     # =========================================================
     # BACKUP DATABASE
@@ -565,14 +572,12 @@ def create_app():
     def backup_db_cli():
 
         import shutil
-        import datetime
-
+        import datetime as dt
 
         src = os.path.join(
             app.instance_path,
             "ink_and_echoes.db"
         )
-
 
         if not os.path.exists(src):
 
@@ -583,45 +588,38 @@ def create_app():
 
             return
 
-
         backups_dir = os.path.join(
             app.instance_path,
             "backups"
         )
-
 
         os.makedirs(
             backups_dir,
             exist_ok=True
         )
 
-
         ts = (
-            datetime.datetime
+            dt.datetime
             .utcnow()
             .strftime(
                 "%Y%m%dT%H%M%SZ"
             )
         )
 
-
         dst = os.path.join(
             backups_dir,
             f"ink_and_echoes-{ts}.db"
         )
-
 
         shutil.copy2(
             src,
             dst
         )
 
-
         print(
             "Backed up DB to",
             dst
         )
-
 
     # =========================================================
     # HOME
@@ -636,38 +634,36 @@ def create_app():
             Category
         )
 
+        try:
 
-        # Home page view
-
-        page_view = (
-            PageView.query
-            .filter_by(
-                page="home"
-            )
-            .first()
-        )
-
-
-        if page_view is None:
-
-            page_view = PageView(
-                page="home",
-                count=1
+            page_view = (
+                PageView.query
+                .filter_by(
+                    page="home"
+                )
+                .first()
             )
 
-            db.session.add(
-                page_view
-            )
+            if page_view is None:
 
-        else:
+                page_view = PageView(
+                    page="home",
+                    count=1
+                )
 
-            page_view.count += 1
+                db.session.add(
+                    page_view
+                )
 
+            else:
 
-        db.session.commit()
+                page_view.count += 1
 
+            db.session.commit()
 
-        # Latest poems
+        except Exception:
+
+            db.session.rollback()
 
         poems = (
             Poem.query
@@ -680,9 +676,6 @@ def create_app():
             .limit(3)
             .all()
         )
-
-
-        # Recent poem IDs
 
         recent_poem_ids = {
 
@@ -698,11 +691,7 @@ def create_app():
                     - poem.created_at
                 ).days <= 7
             )
-
         }
-
-
-        # Latest poem
 
         latest_poem = (
             Poem.query
@@ -715,7 +704,6 @@ def create_app():
             .first()
         )
 
-
         has_new_poem = bool(
 
             latest_poem
@@ -726,11 +714,7 @@ def create_app():
                 datetime.utcnow()
                 - latest_poem.created_at
             ).days <= 7
-
         )
-
-
-        # Featured poem
 
         featured_poem = (
             Poem.query
@@ -741,21 +725,13 @@ def create_app():
             .first()
         )
 
-
-        # If no featured poem exists,
-        # use latest poem for Home.
-
         if featured_poem is None:
 
             featured_poem = latest_poem
 
-
-        # Categories
-
         categories = (
             Category.query.all()
         )
-
 
         return render_template(
 
@@ -777,9 +753,7 @@ def create_app():
 
             categories=
                 categories,
-
         )
-
 
     # =========================================================
     # POEMS
@@ -794,38 +768,36 @@ def create_app():
             Category,
         )
 
+        try:
 
-        # Increment poems page views
-
-        page_view = (
-            PageView.query
-            .filter_by(
-                page="poems"
-            )
-            .first()
-        )
-
-
-        if page_view is None:
-
-            page_view = PageView(
-                page="poems",
-                count=1
+            page_view = (
+                PageView.query
+                .filter_by(
+                    page="poems"
+                )
+                .first()
             )
 
-            db.session.add(
-                page_view
-            )
+            if page_view is None:
 
-        else:
+                page_view = PageView(
+                    page="poems",
+                    count=1
+                )
 
-            page_view.count += 1
+                db.session.add(
+                    page_view
+                )
 
+            else:
 
-        db.session.commit()
+                page_view.count += 1
 
+            db.session.commit()
 
-        # Filters
+        except Exception:
+
+            db.session.rollback()
 
         category_filter = (
             request.args
@@ -836,7 +808,6 @@ def create_app():
             .strip()
         )
 
-
         search_query = (
             request.args
             .get(
@@ -846,7 +817,6 @@ def create_app():
             .strip()
         )
 
-
         sort_by = (
             request.args
             .get(
@@ -855,18 +825,12 @@ def create_app():
             )
         )
 
-
-        # Base query
-
         query = (
             Poem.query
             .filter_by(
                 published=True
             )
         )
-
-
-        # Category filter
 
         if (
             category_filter
@@ -887,15 +851,11 @@ def create_app():
 
                 pass
 
-
-        # Search
-
         if search_query:
 
             search_pattern = (
                 f"%{search_query}%"
             )
-
 
             query = query.filter(
 
@@ -923,11 +883,7 @@ def create_app():
                         search_pattern
                     )
                 )
-
             )
-
-
-        # Sorting
 
         if sort_by == "oldest":
 
@@ -953,18 +909,13 @@ def create_app():
                 )
             )
 
-
         poems = query.all()
 
         categories = (
             Category.query.all()
         )
 
-
-        # User favorites
-
         user_favorites = []
-
 
         if current_user.is_authenticated:
 
@@ -984,13 +935,13 @@ def create_app():
                         )
                         .all()
                     )
-
                 ]
 
             except Exception:
 
-                user_favorites = []
+                db.session.rollback()
 
+                user_favorites = []
 
         return render_template(
 
@@ -1011,9 +962,7 @@ def create_app():
 
             current_category=
                 category_filter,
-
         )
-
 
     # =========================================================
     # FULL POEMS
@@ -1023,7 +972,6 @@ def create_app():
     def poems_full():
 
         from models import Poem
-
 
         poems = (
             Poem.query
@@ -1036,7 +984,6 @@ def create_app():
             .all()
         )
 
-
         return render_template(
 
             "poems.html",
@@ -1046,9 +993,7 @@ def create_app():
             require_login=False,
 
             full_view=True,
-
         )
-
 
     # =========================================================
     # POEM DETAIL
@@ -1065,11 +1010,9 @@ def create_app():
             History,
         )
 
-
         poem = Poem.query.get(
             poem_id
         )
-
 
         if (
             poem is None
@@ -1084,32 +1027,30 @@ def create_app():
                 url_for("poems")
             )
 
-
-        # Reading history
-
         if current_user.is_authenticated:
 
-            history = History(
+            try:
 
-                user_id=
-                    current_user.id,
+                history = History(
 
-                poem_id=
-                    poem_id,
+                    user_id=
+                        current_user.id,
 
-            )
+                    poem_id=
+                        poem_id,
+                )
 
-            db.session.add(
-                history
-            )
+                db.session.add(
+                    history
+                )
 
-            db.session.commit()
+                db.session.commit()
 
+            except Exception:
 
-        # Favorite status
+                db.session.rollback()
 
         is_favorited = False
-
 
         if current_user.is_authenticated:
 
@@ -1133,10 +1074,9 @@ def create_app():
 
             except Exception:
 
+                db.session.rollback()
+
                 is_favorited = False
-
-
-        # Previous / next
 
         all_poems = (
             Poem.query
@@ -1149,12 +1089,10 @@ def create_app():
             .all()
         )
 
-
         poem_ids = [
             p.id
             for p in all_poems
         ]
-
 
         current_index = (
 
@@ -1163,9 +1101,7 @@ def create_app():
             if poem_id in poem_ids
 
             else -1
-
         )
-
 
         prev_poem = (
 
@@ -1176,9 +1112,7 @@ def create_app():
             if current_index > 0
 
             else None
-
         )
-
 
         next_poem = (
 
@@ -1195,9 +1129,7 @@ def create_app():
             )
 
             else None
-
         )
-
 
         return render_template(
 
@@ -1213,9 +1145,7 @@ def create_app():
 
             next_poem=
                 next_poem,
-
         )
-
 
     # =========================================================
     # FAVORITES
@@ -1229,7 +1159,6 @@ def create_app():
             Poem,
             Favorite
         )
-
 
         try:
 
@@ -1247,11 +1176,11 @@ def create_app():
 
         except Exception:
 
+            db.session.rollback()
+
             favorites = []
 
-
         favorite_poems = []
-
 
         for fav in favorites:
 
@@ -1273,8 +1202,7 @@ def create_app():
 
             except Exception:
 
-                pass
-
+                db.session.rollback()
 
         return render_template(
 
@@ -1284,9 +1212,7 @@ def create_app():
 
             total_favorites=
                 len(favorite_poems),
-
         )
-
 
     # =========================================================
     # FAVORITE API
@@ -1306,11 +1232,9 @@ def create_app():
             Favorite
         )
 
-
         poem = Poem.query.get(
             poem_id
         )
-
 
         if (
             poem is None
@@ -1321,7 +1245,6 @@ def create_app():
                 "error":
                     "Poem not found"
             }), 404
-
 
         try:
 
@@ -1339,6 +1262,8 @@ def create_app():
 
         except Exception:
 
+            db.session.rollback()
+
             return jsonify({
 
                 "error":
@@ -1346,15 +1271,23 @@ def create_app():
 
             }), 500
 
-
         if existing_favorite:
 
-            db.session.delete(
-                existing_favorite
-            )
+            try:
 
-            db.session.commit()
+                db.session.delete(
+                    existing_favorite
+                )
 
+                db.session.commit()
+
+            except Exception as e:
+
+                db.session.rollback()
+
+                return jsonify({
+                    "error": str(e)
+                }), 500
 
             return jsonify({
 
@@ -1366,29 +1299,34 @@ def create_app():
 
                 "message":
                     "Removed from favorites"
-
             })
-
 
         else:
 
-            new_favorite = Favorite(
+            try:
 
-                user_id=
-                    current_user.id,
+                new_favorite = Favorite(
 
-                poem_id=
-                    poem_id,
+                    user_id=
+                        current_user.id,
 
-            )
+                    poem_id=
+                        poem_id,
+                )
 
+                db.session.add(
+                    new_favorite
+                )
 
-            db.session.add(
-                new_favorite
-            )
+                db.session.commit()
 
-            db.session.commit()
+            except Exception as e:
 
+                db.session.rollback()
+
+                return jsonify({
+                    "error": str(e)
+                }), 500
 
             return jsonify({
 
@@ -1400,9 +1338,7 @@ def create_app():
 
                 "message":
                     "Added to favorites"
-
             })
-
 
     # =========================================================
     # AI COMPANION
@@ -1414,7 +1350,6 @@ def create_app():
         return render_template(
             "chat.html"
         )
-
 
     # =========================================================
     # POEMS API
@@ -1430,7 +1365,6 @@ def create_app():
             Category
         )
 
-
         poems = (
             Poem.query
             .filter_by(
@@ -1442,14 +1376,11 @@ def create_app():
             .all()
         )
 
-
         output = []
-
 
         for poem in poems:
 
             category_name = None
-
 
             if poem.category_id:
 
@@ -1464,7 +1395,6 @@ def create_app():
                     category_name = (
                         category.name
                     )
-
 
             output.append({
 
@@ -1493,14 +1423,11 @@ def create_app():
                         if poem.created_at
                         else None
                     ),
-
             })
-
 
         return jsonify(
             output
         )
-
 
     # =========================================================
     # NOTIFICATIONS API
@@ -1513,7 +1440,6 @@ def create_app():
 
         from models import Poem
 
-
         poems = (
             Poem.query
             .filter_by(
@@ -1525,7 +1451,6 @@ def create_app():
             .limit(10)
             .all()
         )
-
 
         return jsonify([
 
@@ -1546,13 +1471,10 @@ def create_app():
 
                 "url":
                     url_for("poems"),
-
             }
 
             for poem in poems
-
         ])
-
 
     # =========================================================
     # SINGLE POEM API
@@ -1570,11 +1492,9 @@ def create_app():
             Category
         )
 
-
         poem = Poem.query.get(
             poem_id
         )
-
 
         if (
             poem is None
@@ -1588,9 +1508,7 @@ def create_app():
 
             }), 404
 
-
         category_name = None
-
 
         if poem.category_id:
 
@@ -1605,7 +1523,6 @@ def create_app():
                 category_name = (
                     category.name
                 )
-
 
         return jsonify({
 
@@ -1634,17 +1551,13 @@ def create_app():
                     if poem.created_at
                     else None
                 ),
-
         })
-
 
     # =========================================================
     # ADMIN REQUEST CHECK
     # =========================================================
 
     def _is_admin_request():
-
-        # Logged-in admin
 
         try:
 
@@ -1670,15 +1583,13 @@ def create_app():
 
         except Exception:
 
-            pass
-
+            db.session.rollback()
 
         # X-API-KEY
 
         api_key = request.headers.get(
             "X-API-KEY"
         )
-
 
         if (
 
@@ -1696,13 +1607,11 @@ def create_app():
 
             return True
 
-
         # Basic authentication
 
         auth = request.headers.get(
             "Authorization"
         )
-
 
         if (
             auth
@@ -1716,14 +1625,12 @@ def create_app():
 
                 from models import User
 
-
                 encoded = (
                     auth.split(
                         " ",
                         1
                     )[1]
                 )
-
 
                 credentials = (
                     base64.b64decode(
@@ -1732,14 +1639,12 @@ def create_app():
                     .decode("utf-8")
                 )
 
-
                 username, password = (
                     credentials.split(
                         ":",
                         1
                     )
                 )
-
 
                 user = (
                     User.query
@@ -1758,7 +1663,6 @@ def create_app():
                     )
                     .first()
                 )
-
 
                 if (
 
@@ -1782,11 +1686,9 @@ def create_app():
 
                     return True
 
-
             except Exception:
 
-                pass
-
+                db.session.rollback()
 
         # Bearer token
 
@@ -1805,11 +1707,7 @@ def create_app():
                     )[1]
                 )
 
-
-                from models import (
-                    ApiToken
-                )
-
+                from models import ApiToken
 
                 for api_token in (
                     ApiToken.query.all()
@@ -1834,14 +1732,11 @@ def create_app():
 
                         return True
 
-
             except Exception:
 
-                pass
-
+                db.session.rollback()
 
         return False
-
 
     # =========================================================
     # CREATE POEM API
@@ -1862,7 +1757,6 @@ def create_app():
 
             }), 401
 
-
         if not request.is_json:
 
             return jsonify({
@@ -1872,29 +1766,24 @@ def create_app():
 
             }), 400
 
-
         payload = (
             request.get_json()
         )
-
 
         title = (
             payload.get("title")
             or ""
         ).strip()
 
-
         body = (
             payload.get("body")
             or ""
         ).strip()
 
-
         category_name = (
             payload.get("category")
             or ""
         ).strip()
-
 
         published = bool(
             payload.get(
@@ -1902,7 +1791,6 @@ def create_app():
                 True
             )
         )
-
 
         if not title or not body:
 
@@ -1913,13 +1801,11 @@ def create_app():
 
             }), 400
 
-
         from models import (
             Poem,
             Category,
             db as _db
         )
-
 
         def normalize_text(
             text
@@ -1938,126 +1824,130 @@ def create_app():
                 .lower()
             )
 
+        try:
 
-        normalized_title = (
-            normalize_text(
-                title
-            )
-        )
-
-
-        normalized_body = (
-            normalize_text(
-                body
-            )
-        )
-
-
-        for poem in (
-            Poem.query
-            .filter_by(
-                published=True
-            )
-            .all()
-        ):
-
-            if (
-
+            normalized_title = (
                 normalize_text(
-                    poem.title
+                    title
                 )
-                ==
-                normalized_title
+            )
 
-                and
-
+            normalized_body = (
                 normalize_text(
-                    poem.body
+                    body
                 )
-                ==
-                normalized_body
+            )
 
+            for poem in (
+                Poem.query
+                .filter_by(
+                    published=True
+                )
+                .all()
             ):
 
-                return jsonify({
+                if (
 
-                    "ok":
-                        False,
+                    normalize_text(
+                        poem.title
+                    )
+                    ==
+                    normalized_title
 
-                    "error":
-                        "duplicate"
+                    and
 
-                }), 409
+                    normalize_text(
+                        poem.body
+                    )
+                    ==
+                    normalized_body
 
+                ):
 
-        category = None
+                    return jsonify({
 
+                        "ok":
+                            False,
 
-        if category_name:
+                        "error":
+                            "duplicate"
 
-            category = (
-                Category.query
-                .filter_by(
-                    name=category_name
+                    }), 409
+
+            category = None
+
+            if category_name:
+
+                category = (
+                    Category.query
+                    .filter_by(
+                        name=category_name
+                    )
+                    .first()
                 )
-                .first()
+
+                if not category:
+
+                    category = Category(
+                        name=category_name
+                    )
+
+                    _db.session.add(
+                        category
+                    )
+
+                    _db.session.flush()
+
+            poem = Poem(
+
+                title=
+                    title,
+
+                body=
+                    body,
+
+                category_id=
+                    (
+                        category.id
+                        if category
+                        else None
+                    ),
+
+                published=
+                    published,
             )
 
+            _db.session.add(
+                poem
+            )
 
-            if not category:
+            _db.session.commit()
 
-                category = Category(
-                    name=category_name
-                )
+            return jsonify({
 
-                _db.session.add(
-                    category
-                )
+                "ok":
+                    True,
 
-                _db.session.flush()
+                "id":
+                    poem.id,
 
+                "title":
+                    poem.title
+            })
 
-        poem = Poem(
+        except Exception as e:
 
-            title=
-                title,
+            _db.session.rollback()
 
-            body=
-                body,
+            return jsonify({
 
-            category_id=
-                (
-                    category.id
-                    if category
-                    else None
-                ),
+                "ok":
+                    False,
 
-            published=
-                published,
+                "error":
+                    str(e)
 
-        )
-
-
-        _db.session.add(
-            poem
-        )
-
-        _db.session.commit()
-
-
-        return jsonify({
-
-            "ok":
-                True,
-
-            "id":
-                poem.id,
-
-            "title":
-                poem.title
-
-        })
-
+            }), 500
 
     # =========================================================
     # ACTIVE VIEWERS — PING
@@ -2078,11 +1968,9 @@ def create_app():
 
             }), 400
 
-
         payload = (
             request.get_json()
         )
-
 
         client_id = (
             payload.get(
@@ -2091,14 +1979,12 @@ def create_app():
             or ""
         ).strip()
 
-
         page = (
             payload.get(
                 "page"
             )
             or ""
         ).strip()
-
 
         if not client_id or not page:
 
@@ -2109,59 +1995,67 @@ def create_app():
 
             }), 400
 
-
         from models import (
             ActiveViewer,
             db as _db
         )
 
+        try:
 
-        av = (
-            ActiveViewer.query
-            .filter_by(
-                client_id=client_id,
-                page=page
-            )
-            .first()
-        )
-
-
-        if av is None:
-
-            av = ActiveViewer(
-
-                client_id=
-                    client_id,
-
-                page=
-                    page,
-
-                last_seen=
-                    datetime.utcnow(),
-
+            av = (
+                ActiveViewer.query
+                .filter_by(
+                    client_id=client_id,
+                    page=page
+                )
+                .first()
             )
 
-            _db.session.add(
-                av
-            )
+            if av is None:
 
-        else:
+                av = ActiveViewer(
 
-            av.last_seen = (
-                datetime.utcnow()
-            )
+                    client_id=
+                        client_id,
 
+                    page=
+                        page,
 
-        _db.session.commit()
+                    last_seen=
+                        datetime.utcnow(),
+                )
 
+                _db.session.add(
+                    av
+                )
 
-        return jsonify({
+            else:
 
-            "ok":
-                True
+                av.last_seen = (
+                    datetime.utcnow()
+                )
 
-        })
+            _db.session.commit()
 
+            return jsonify({
+
+                "ok":
+                    True
+            })
+
+        except Exception as e:
+
+            _db.session.rollback()
+
+            return jsonify({
+
+                "ok":
+                    False,
+
+                "error":
+                    str(e)
+
+            }), 500
 
     # =========================================================
     # ACTIVE VIEWERS — COUNT
@@ -2180,7 +2074,6 @@ def create_app():
 
         from datetime import timedelta
 
-
         cutoff = (
             datetime.utcnow()
             -
@@ -2189,33 +2082,36 @@ def create_app():
             )
         )
 
+        try:
 
-        count = (
+            count = (
 
-            ActiveViewer.query
+                ActiveViewer.query
 
-            .filter(
-                ActiveViewer.page
-                ==
-                page,
+                .filter(
+                    ActiveViewer.page
+                    ==
+                    page,
 
-                ActiveViewer.last_seen
-                >=
-                cutoff,
+                    ActiveViewer.last_seen
+                    >=
+                    cutoff,
+                )
+
+                .count()
             )
 
-            .count()
+        except Exception:
 
-        )
+            db.session.rollback()
 
+            count = 0
 
         return jsonify({
 
             "count":
                 count
-
         })
-
 
     # =========================================================
     # SUGGESTIONS
@@ -2233,7 +2129,6 @@ def create_app():
                 Suggestion
             )
 
-
             message = (
                 request.form
                 .get(
@@ -2241,7 +2136,6 @@ def create_app():
                 )
                 or ""
             ).strip()
-
 
             user_id = (
 
@@ -2254,33 +2148,38 @@ def create_app():
                 )
 
                 else None
-
             )
-
 
             if message:
 
-                suggestion = Suggestion(
+                try:
 
-                    user_id=
-                        user_id,
+                    suggestion = Suggestion(
 
-                    message=
-                        message,
+                        user_id=
+                            user_id,
 
-                )
+                        message=
+                            message,
+                    )
 
+                    db.session.add(
+                        suggestion
+                    )
 
-                db.session.add(
-                    suggestion
-                )
+                    db.session.commit()
 
-                db.session.commit()
+                    flash(
+                        "Your suggestion has been saved to the margins."
+                    )
 
+                except Exception:
 
-                flash(
-                    "Your suggestion has been saved to the margins."
-                )
+                    db.session.rollback()
+
+                    flash(
+                        "Unable to save your suggestion right now."
+                    )
 
             else:
 
@@ -2288,18 +2187,15 @@ def create_app():
                     "Write a little note before sending it."
                 )
 
-
             return redirect(
                 url_for(
                     "suggestions"
                 )
             )
 
-
         return render_template(
             "suggestions.html"
         )
-
 
     # =========================================================
     # ADMIN SUGGESTIONS
@@ -2316,7 +2212,6 @@ def create_app():
             User
         )
 
-
         if not getattr(
             current_user,
             "is_admin",
@@ -2331,33 +2226,44 @@ def create_app():
                 url_for("index")
             )
 
+        try:
 
-        suggestions = (
-            Suggestion.query
-            .order_by(
-                Suggestion.created_at.desc()
+            suggestions = (
+                Suggestion.query
+                .order_by(
+                    Suggestion.created_at.desc()
+                )
+                .all()
             )
-            .all()
-        )
 
+        except Exception:
+
+            db.session.rollback()
+
+            suggestions = []
 
         results = []
 
-
         for suggestion in suggestions:
 
-            user = (
+            try:
 
-                User.query.get(
-                    suggestion.user_id
+                user = (
+
+                    User.query.get(
+                        suggestion.user_id
+                    )
+
+                    if suggestion.user_id
+
+                    else None
                 )
 
-                if suggestion.user_id
+            except Exception:
 
-                else None
+                db.session.rollback()
 
-            )
-
+                user = None
 
             results.append({
 
@@ -2366,18 +2272,23 @@ def create_app():
 
                 "user":
                     user,
-
             })
 
+        try:
 
-        users = (
-            User.query
-            .order_by(
-                User.created_at.desc()
+            users = (
+                User.query
+                .order_by(
+                    User.created_at.desc()
+                )
+                .all()
             )
-            .all()
-        )
 
+        except Exception:
+
+            db.session.rollback()
+
+            users = []
 
         return render_template(
 
@@ -2388,9 +2299,7 @@ def create_app():
 
             users=
                 users,
-
         )
-
 
     # =========================================================
     # RETURN APP
@@ -2412,7 +2321,13 @@ app = create_app()
 
 with app.app_context():
 
-    db.create_all()
+    try:
+
+        db.create_all()
+
+    except Exception:
+
+        db.session.rollback()
 
 
 # =============================================================
@@ -2420,25 +2335,10 @@ with app.app_context():
 # =============================================================
 
 if __name__ == "__main__":
-
     app.run(
-
-        debug=
-            os.environ.get(
-                "FLASK_DEBUG",
-                "0"
+        host="0.0.0.0",
+        port=int(os.environ.get("PORT", 5000)),
+        debug=False
+    )
             )
-            == "1",
-
-        host=
-            "0.0.0.0",
-
-        port=
-            int(
-                os.environ.get(
-                    "PORT",
-                    5000
-                )
-            ),
-
     )
