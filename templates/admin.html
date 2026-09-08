@@ -23,8 +23,6 @@
     --glass: rgba(255,255,255,.035);
 }
 
-/* Background decoration */
-
 .admin-page::before {
     content: "";
     position: absolute;
@@ -139,7 +137,6 @@
 
 .admin-kicker {
     display: block;
-
     margin-bottom: 17px;
 
     color: var(--purple);
@@ -251,7 +248,7 @@
 
 .admin-stats {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     gap: 16px;
 
     margin-bottom: 30px;
@@ -843,6 +840,262 @@
 }
 
 /* =========================================================
+   VISITOR ANALYTICS
+   ========================================================= */
+
+.admin-visitors-section {
+    margin-top: 45px;
+}
+
+.admin-visitors-card {
+    padding: 30px;
+
+    border: 1px solid rgba(255,255,255,.075);
+    border-radius: 23px;
+
+    background:
+        radial-gradient(
+            circle at 90% 0%,
+            rgba(107,63,160,.10),
+            transparent 30%
+        ),
+        linear-gradient(
+            145deg,
+            rgba(255,255,255,.035),
+            rgba(255,255,255,.012)
+        );
+
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+
+    box-shadow:
+        0 25px 60px rgba(0,0,0,.20);
+}
+
+.visitor-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+
+    margin-bottom: 24px;
+}
+
+.visitor-heading h2 {
+    margin: 0 0 6px;
+
+    color: #eee9f1;
+
+    font-family: Georgia, serif;
+    font-size: 27px;
+    font-weight: 400;
+}
+
+.visitor-heading p {
+    margin: 0;
+
+    color: #77737e;
+
+    font-size: 11px;
+}
+
+.visitor-heading-symbol {
+    color: var(--purple);
+    opacity: .35;
+    font-size: 25px;
+}
+
+/* Visitor summary */
+
+.visitor-summary {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+
+    margin-bottom: 25px;
+}
+
+.visitor-summary-box {
+    padding: 17px;
+
+    border: 1px solid rgba(255,255,255,.06);
+    border-radius: 15px;
+
+    background: rgba(0,0,0,.14);
+}
+
+.visitor-summary-label {
+    display: block;
+
+    margin-bottom: 6px;
+
+    color: #686570;
+
+    font-size: 8px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+}
+
+.visitor-summary-value {
+    color: #d7d0dc;
+
+    font-family: Georgia, serif;
+    font-size: 22px;
+}
+
+/* Visitor list */
+
+.visitor-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.visitor-row {
+    display: grid;
+    grid-template-columns:
+        minmax(180px, 1.5fr)
+        minmax(90px, .7fr)
+        minmax(130px, 1fr)
+        minmax(130px, 1fr)
+        minmax(120px, .8fr);
+
+    gap: 15px;
+
+    align-items: center;
+
+    padding: 17px 0;
+
+    border-bottom: 1px solid rgba(255,255,255,.055);
+}
+
+.visitor-row:last-child {
+    border-bottom: none;
+}
+
+.visitor-header {
+    padding: 0 0 11px;
+
+    color: #625f69;
+
+    font-size: 8px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+}
+
+.visitor-header > div {
+    color: #625f69;
+}
+
+.visitor-identity {
+    min-width: 0;
+}
+
+.visitor-name {
+    display: block;
+
+    margin-bottom: 5px;
+
+    color: #d3ccd8;
+
+    font-family: Georgia, serif;
+    font-size: 13px;
+}
+
+.visitor-email {
+    display: block;
+
+    color: #77737e;
+
+    font-size: 10px;
+
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.visitor-anonymous {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+
+    padding: 5px 9px;
+
+    border: 1px solid rgba(255,255,255,.07);
+    border-radius: 999px;
+
+    background: rgba(255,255,255,.018);
+
+    color: #85818c;
+
+    font-size: 9px;
+}
+
+.visitor-registered {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+
+    padding: 5px 9px;
+
+    border: 1px solid rgba(169,138,199,.16);
+    border-radius: 999px;
+
+    background: rgba(107,63,160,.045);
+
+    color: #b59bca;
+
+    font-size: 9px;
+}
+
+.visitor-count {
+    color: #c9a96e;
+
+    font-family: Georgia, serif;
+    font-size: 17px;
+}
+
+.visitor-date {
+    color: #77737e;
+
+    font-size: 9px;
+    line-height: 1.6;
+}
+
+.visitor-page {
+    color: #8a8690;
+
+    font-family: monospace;
+    font-size: 9px;
+
+    word-break: break-word;
+}
+
+/* Last seen dot */
+
+.visitor-last-seen {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+
+    color: #85818c;
+
+    font-size: 9px;
+}
+
+.visitor-live-dot {
+    width: 6px;
+    height: 6px;
+
+    flex: 0 0 auto;
+
+    border-radius: 50%;
+
+    background: #70c472;
+
+    box-shadow:
+        0 0 9px rgba(112,196,114,.55);
+}
+
+/* =========================================================
    ACTIVE VISITORS
    ========================================================= */
 
@@ -883,6 +1136,27 @@
    MOBILE
    ========================================================= */
 
+@media (max-width: 1000px) {
+
+    .admin-stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .visitor-row {
+        grid-template-columns:
+            1.5fr
+            .7fr
+            1fr;
+    }
+
+    .visitor-header > div:nth-child(4),
+    .visitor-header > div:nth-child(5),
+    .visitor-row > div:nth-child(4),
+    .visitor-row > div:nth-child(5) {
+        display: none;
+    }
+}
+
 @media (max-width: 850px) {
 
     .admin-page {
@@ -892,10 +1166,6 @@
     .admin-hero {
         padding: 38px 27px;
         border-radius: 22px;
-    }
-
-    .admin-stats {
-        grid-template-columns: 1fr;
     }
 
     .admin-form-grid {
@@ -909,6 +1179,24 @@
     .admin-poems-grid,
     .admin-secondary-grid {
         grid-template-columns: 1fr;
+    }
+
+    .visitor-summary {
+        grid-template-columns: 1fr;
+    }
+
+    .visitor-row {
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+    }
+
+    .visitor-header {
+        display: none;
+    }
+
+    .visitor-row > div:nth-child(4),
+    .visitor-row > div:nth-child(5) {
+        display: block;
     }
 }
 
@@ -932,12 +1220,14 @@
     }
 
     .admin-add-card,
-    .admin-panel {
+    .admin-panel,
+    .admin-visitors-card {
         padding: 21px;
         border-radius: 17px;
     }
 
-    .admin-section-heading h2 {
+    .admin-section-heading h2,
+    .visitor-heading h2 {
         font-size: 22px;
     }
 
@@ -960,8 +1250,20 @@
     .admin-star {
         display: none;
     }
-}
 
+    .admin-stats {
+        grid-template-columns: 1fr;
+    }
+
+    .visitor-row {
+        grid-template-columns: 1fr;
+    }
+
+    .visitor-row > div:nth-child(4),
+    .visitor-row > div:nth-child(5) {
+        display: block;
+    }
+}
 </style>
 
 
@@ -1048,6 +1350,19 @@
 
             <span class="admin-stat-number">
                 {{ total_favorites|default(0) }}
+            </span>
+
+        </div>
+
+
+        <div class="admin-stat">
+
+            <span class="admin-stat-label">
+                Tracked Visitors
+            </span>
+
+            <span class="admin-stat-number">
+                {{ visitors|length if visitors is defined else 0 }}
             </span>
 
         </div>
@@ -1353,8 +1668,6 @@
 
                 <div class="admin-poem-actions">
 
-                    <!-- EDIT -->
-
                     <a
                         href="{{ url_for('admin.admin_edit_poem', poem_id=p.id) }}"
                         class="admin-action-btn"
@@ -1362,8 +1675,6 @@
                         Edit
                     </a>
 
-
-                    <!-- DELETE -->
 
                     <form
                         method="POST"
@@ -1382,8 +1693,6 @@
                     </form>
 
 
-                    <!-- VIEW -->
-
                     <a
                         href="/poem/{{ p.id }}"
                         target="_blank"
@@ -1393,8 +1702,6 @@
                         View
                     </a>
 
-
-                    <!-- FEATURE -->
 
                     {% if not p.is_featured %}
 
@@ -1535,6 +1842,272 @@
                 <p class="admin-empty">
                     No registered readers yet.
                 </p>
+
+            {% endif %}
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         VISITOR ANALYTICS
+         ===================================================== -->
+
+    <section class="admin-visitors-section">
+
+        <div class="visitor-heading">
+
+            <div>
+
+                <h2>
+                    Visitor Analytics
+                </h2>
+
+                <p>
+                    A quiet record of the readers who have wandered
+                    through your poetry world.
+                </p>
+
+            </div>
+
+            <span class="visitor-heading-symbol">
+                ☾
+            </span>
+
+        </div>
+
+
+        <div class="admin-visitors-card">
+
+            <!-- SUMMARY -->
+
+            <div class="visitor-summary">
+
+                <div class="visitor-summary-box">
+
+                    <span class="visitor-summary-label">
+                        Total Tracked
+                    </span>
+
+                    <span class="visitor-summary-value">
+                        {{ visitors|length if visitors is defined else 0 }}
+                    </span>
+
+                </div>
+
+
+                <div class="visitor-summary-box">
+
+                    <span class="visitor-summary-label">
+                        Registered
+                    </span>
+
+                    <span class="visitor-summary-value">
+
+                        {% set registered_count = 0 %}
+
+                        {% if visitors is defined %}
+
+                            {% for visitor in visitors %}
+
+                                {% if visitor.user_id %}
+                                    {% set registered_count = registered_count + 1 %}
+                                {% endif %}
+
+                            {% endfor %}
+
+                        {% endif %}
+
+                        {{ registered_count }}
+
+                    </span>
+
+                </div>
+
+
+                <div class="visitor-summary-box">
+
+                    <span class="visitor-summary-label">
+                        Anonymous
+                    </span>
+
+                    <span class="visitor-summary-value">
+
+                        {% set anonymous_count = 0 %}
+
+                        {% if visitors is defined %}
+
+                            {% for visitor in visitors %}
+
+                                {% if not visitor.user_id %}
+                                    {% set anonymous_count = anonymous_count + 1 %}
+                                {% endif %}
+
+                            {% endfor %}
+
+                        {% endif %}
+
+                        {{ anonymous_count }}
+
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <!-- VISITOR HEADER -->
+
+            {% if visitors %}
+
+            <div class="visitor-list">
+
+                <div class="visitor-row visitor-header">
+
+                    <div>
+                        Reader
+                    </div>
+
+                    <div>
+                        Visits
+                    </div>
+
+                    <div>
+                        First Seen
+                    </div>
+
+                    <div>
+                        Last Seen
+                    </div>
+
+                    <div>
+                        Last Page
+                    </div>
+
+                </div>
+
+
+                <!-- VISITORS -->
+
+                {% for visitor in visitors %}
+
+                <div class="visitor-row">
+
+                    <!-- IDENTITY -->
+
+                    <div class="visitor-identity">
+
+                        {% if visitor.user %}
+
+                            <span class="visitor-name">
+                                {{ visitor.user.username }}
+                            </span>
+
+                            <span class="visitor-email">
+                                {{ visitor.user.email }}
+                            </span>
+
+                            <span class="visitor-registered">
+                                ✦ Registered reader
+                            </span>
+
+                        {% else %}
+
+                            <span class="visitor-name">
+                                Anonymous reader
+                            </span>
+
+                            <span class="visitor-email">
+                                No email provided
+                            </span>
+
+                            <span class="visitor-anonymous">
+                                ◦ Anonymous
+                            </span>
+
+                        {% endif %}
+
+                    </div>
+
+
+                    <!-- VISIT COUNT -->
+
+                    <div>
+
+                        <span class="visitor-count">
+                            {{ visitor.visit_count|default(0) }}
+                        </span>
+
+                    </div>
+
+
+                    <!-- FIRST SEEN -->
+
+                    <div>
+
+                        <span class="visitor-date">
+
+                            {% if visitor.first_seen %}
+                                {{ visitor.first_seen }}
+                            {% else %}
+                                —
+                            {% endif %}
+
+                        </span>
+
+                    </div>
+
+
+                    <!-- LAST SEEN -->
+
+                    <div>
+
+                        <span class="visitor-last-seen">
+
+                            <span class="visitor-live-dot"></span>
+
+                            {% if visitor.last_seen %}
+                                {{ visitor.last_seen }}
+                            {% else %}
+                                —
+                            {% endif %}
+
+                        </span>
+
+                    </div>
+
+
+                    <!-- LAST PAGE -->
+
+                    <div>
+
+                        <span class="visitor-page">
+
+                            {% if visitor.last_page %}
+                                {{ visitor.last_page }}
+                            {% else %}
+                                —
+                            {% endif %}
+
+                        </span>
+
+                    </div>
+
+                </div>
+
+                {% endfor %}
+
+            </div>
+
+
+            {% else %}
+
+            <p class="admin-empty">
+                No visitor activity has been recorded yet.
+                Once readers enter your poetry world,
+                their visits will appear here.
+            </p>
 
             {% endif %}
 
