@@ -23,6 +23,7 @@ from models import (
     User,
     ApiToken,
     ActiveViewer,
+    visitor,
 )
 
 
