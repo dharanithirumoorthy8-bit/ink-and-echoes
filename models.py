@@ -106,3 +106,46 @@ class ActiveViewer(db.Model):
     client_id = db.Column(db.String(200), nullable=False)
     page = db.Column(db.String(200), nullable=False)
     last_seen = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+class Visitor(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+
+    user_id = db.Column(
+        db.Integer,
+        db.ForeignKey("user.id"),
+        nullable=True
+    )
+
+    client_id = db.Column(
+        db.String(200),
+        nullable=True,
+        unique=True,
+        index=True
+    )
+
+    visit_count = db.Column(
+        db.Integer,
+        default=0,
+        nullable=False
+    )
+
+    first_seen = db.Column(
+        db.DateTime,
+        default=datetime.utcnow
+    )
+
+    last_seen = db.Column(
+        db.DateTime,
+        default=datetime.utcnow,
+        onupdate=datetime.utcnow
+    )
+
+    last_page = db.Column(
+        db.String(200),
+        nullable=True
+    )
+
+    user = db.relationship(
+        "User",
+        backref="visits"
+    )
