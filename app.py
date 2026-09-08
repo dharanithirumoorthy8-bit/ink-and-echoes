@@ -1,4 +1,5 @@
 import os
+import uuid
 from datetime import datetime
 import click
 
@@ -10,6 +11,7 @@ from flask import (
     request,
     flash,
     jsonify,
+    session,
 )
 
 from werkzeug.security import (
@@ -23,7 +25,10 @@ from flask_login import (
     current_user,
 )
 
-from models import db
+from models import (
+    db,
+    Visitor,
+)
 
 
 def create_app():
@@ -180,7 +185,6 @@ def create_app():
 
         try:
 
-            # Clear any previously failed transaction
             db.session.rollback()
 
             return User.query.get(
@@ -192,6 +196,162 @@ def create_app():
             db.session.rollback()
 
             return None
+
+    # =========================================================
+    # VISITOR TRACKING
+    # =========================================================
+
+    @app.before_request
+    def track_visitor():
+
+        # Only count normal page visits.
+        # API, admin and static requests are ignored.
+
+        if request.method != "GET":
+            return
+
+        if request.path.startswith("/static/"):
+            return
+
+        if request.path.startswith("/api/"):
+            return
+
+        if request.path.startswith("/admin"):
+            return
+
+        if request.path in (
+            "/favicon.ico",
+        ):
+            return
+
+        try:
+
+            # -------------------------------------------------
+            # Anonymous visitor ID
+            # -------------------------------------------------
+
+            client_id = session.get(
+                "visitor_client_id"
+            )
+
+            if not client_id:
+
+                client_id = uuid.uuid4().hex
+
+                session[
+                    "visitor_client_id"
+                ] = client_id
+
+            # -------------------------------------------------
+            # REGISTERED USER
+            # -------------------------------------------------
+
+            if current_user.is_authenticated:
+
+                visitor = (
+                    Visitor.query
+                    .filter_by(
+                        user_id=current_user.id
+                    )
+                    .first()
+                )
+
+                if visitor is None:
+
+                    visitor = Visitor(
+
+                        user_id=
+                            current_user.id,
+
+                        client_id=None,
+
+                        visit_count=1,
+
+                        first_seen=
+                            datetime.utcnow(),
+
+                        last_seen=
+                            datetime.utcnow(),
+
+                        last_page=
+                            request.path,
+                    )
+
+                    db.session.add(
+                        visitor
+                    )
+
+                else:
+
+                    visitor.visit_count += 1
+
+                    visitor.last_seen = (
+                        datetime.utcnow()
+                    )
+
+                    visitor.last_page = (
+                        request.path
+                    )
+
+            # -------------------------------------------------
+            # ANONYMOUS USER
+            # -------------------------------------------------
+
+            else:
+
+                visitor = (
+                    Visitor.query
+                    .filter_by(
+                        client_id=client_id
+                    )
+                    .first()
+                )
+
+                if visitor is None:
+
+                    visitor = Visitor(
+
+                        user_id=None,
+
+                        client_id=
+                            client_id,
+
+                        visit_count=1,
+
+                        first_seen=
+                            datetime.utcnow(),
+
+                        last_seen=
+                            datetime.utcnow(),
+
+                        last_page=
+                            request.path,
+                    )
+
+                    db.session.add(
+                        visitor
+                    )
+
+                else:
+
+                    visitor.visit_count += 1
+
+                    visitor.last_seen = (
+                        datetime.utcnow()
+                    )
+
+                    visitor.last_page = (
+                        request.path
+                    )
+
+            db.session.commit()
+
+        except Exception:
+
+            # Visitor tracking must NEVER
+            # break the website.
+
+            db.session.rollback()
 
     # =========================================================
     # BLUEPRINTS
@@ -2335,8 +2495,14 @@ with app.app_context():
 # =============================================================
 
 if __name__ == "__main__":
+
     app.run(
         host="0.0.0.0",
-        port=int(os.environ.get("PORT", 5000)),
+        port=int(
+            os.environ.get(
+                "PORT",
+                5000
+            )
+        ),
         debug=False
     )
