@@ -23,7 +23,7 @@ from models import (
     User,
     ApiToken,
     ActiveViewer,
-    visitor,
+    Visitor,
 )
 
 
@@ -109,6 +109,23 @@ def admin_index():
 
 
     # -----------------------------------------------------
+    # Visitors
+    # -----------------------------------------------------
+
+    try:
+        visitors = (
+            Visitor.query
+            .order_by(
+                Visitor.last_seen.desc()
+            )
+            .all()
+        )
+    except Exception:
+        db.session.rollback()
+        visitors = []
+
+
+    # -----------------------------------------------------
     # Suggestions
     # -----------------------------------------------------
 
@@ -158,6 +175,7 @@ def admin_index():
         poems=poems,
         categories=categories,
         users=users,
+        visitors=visitors,
         suggestions=suggestions,
         total_poems=total_poems,
         total_categories=len(categories),
@@ -1142,10 +1160,31 @@ def admin_viewers():
         viewers = []
 
 
+    # -----------------------------------------------------
+    # Visitor history
+    # -----------------------------------------------------
+
+    try:
+
+        visitors = (
+            Visitor.query
+            .order_by(
+                Visitor.last_seen.desc()
+            )
+            .all()
+        )
+
+    except Exception:
+
+        db.session.rollback()
+        visitors = []
+
+
     return render_template(
         "admin_viewers.html",
         tokens=tokens,
-        viewers=viewers
+        viewers=viewers,
+        visitors=visitors
     )
 
 
