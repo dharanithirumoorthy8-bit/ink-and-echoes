@@ -97,12 +97,20 @@
 
                 <div class="portrait-inner">
 
+                    <!--
+                        PERSONAL PHOTO
+                        Download / drag / right-click protection
+                    -->
+
                     <img
                         src="{{ url_for(
                             'static',
                             filename='img/IMG-20260711-WA0262.jpg'
                         ) }}"
                         alt="Poet portrait"
+                        class="private-poet-photo"
+                        draggable="false"
+                        oncontextmenu="return false;"
                     >
 
                 </div>
@@ -629,6 +637,96 @@
     </a>
 
 </section>
+
+
+<!-- =========================================================
+     PERSONAL PHOTO PROTECTION
+     ========================================================= -->
+
+<script>
+(function () {
+
+    const photoSelector = ".private-poet-photo";
+
+    /* Block right-click only on the personal photo */
+    document.addEventListener("contextmenu", function (event) {
+
+        if (event.target.closest(photoSelector)) {
+            event.preventDefault();
+        }
+
+    });
+
+
+    /* Block dragging the personal photo */
+    document.addEventListener("dragstart", function (event) {
+
+        if (event.target.closest(photoSelector)) {
+            event.preventDefault();
+        }
+
+    });
+
+
+    /* Block selecting the personal photo */
+    document.addEventListener("selectstart", function (event) {
+
+        if (event.target.closest(photoSelector)) {
+            event.preventDefault();
+        }
+
+    });
+
+
+    /* Block common keyboard shortcuts while the photo is focused */
+    document.addEventListener("keydown", function (event) {
+
+        const target = document.activeElement;
+
+        if (!target || !target.closest(photoSelector)) {
+            return;
+        }
+
+        /* Ctrl/Cmd + S */
+        if (
+            (event.ctrlKey || event.metaKey) &&
+            event.key.toLowerCase() === "s"
+        ) {
+            event.preventDefault();
+        }
+
+        /* Ctrl/Cmd + C */
+        if (
+            (event.ctrlKey || event.metaKey) &&
+            event.key.toLowerCase() === "c"
+        ) {
+            event.preventDefault();
+        }
+
+    });
+
+})();
+</script>
+
+
+<style>
+/* =========================================================
+   PERSONAL PHOTO — DOWNLOAD PROTECTION
+   ========================================================= */
+
+.private-poet-photo {
+
+    -webkit-user-drag: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    user-select: none;
+
+    -webkit-touch-callout: none;
+
+    pointer-events: auto;
+
+}
+</style>
 
 
 {% endblock %}
