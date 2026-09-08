@@ -167,19 +167,68 @@ def admin_index():
 
 
     # -----------------------------------------------------
+    # Visitor statistics
+    # -----------------------------------------------------
+
+    try:
+
+        total_visitors = len(visitors)
+
+        registered_visitors = sum(
+            1
+            for visitor in visitors
+            if visitor.user_id is not None
+        )
+
+        anonymous_visitors = sum(
+            1
+            for visitor in visitors
+            if visitor.user_id is None
+        )
+
+        total_page_visits = sum(
+            visitor.visit_count or 0
+            for visitor in visitors
+        )
+
+    except Exception:
+
+        total_visitors = 0
+        registered_visitors = 0
+        anonymous_visitors = 0
+        total_page_visits = 0
+
+
+    # -----------------------------------------------------
     # Render dashboard
     # -----------------------------------------------------
 
     return render_template(
         "admin.html",
+
         poems=poems,
+
         categories=categories,
+
         users=users,
+
         visitors=visitors,
+
         suggestions=suggestions,
+
         total_poems=total_poems,
+
         total_categories=len(categories),
+
         total_favorites=total_favorites,
+
+        total_visitors=total_visitors,
+
+        registered_visitors=registered_visitors,
+
+        anonymous_visitors=anonymous_visitors,
+
+        total_page_visits=total_page_visits,
     )
 
 
